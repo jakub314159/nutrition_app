@@ -1,4 +1,4 @@
-from src.models.product import Product
+from nutrition_app.models.product import Product
 from pytest import fixture
 import pytest
 

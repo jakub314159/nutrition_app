@@ -1,0 +1,4 @@
+.idea
+venv
+build
+nutrition_app.egg-info

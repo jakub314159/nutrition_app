@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nutrition_app"
+description = "Application to <to be added>"
+authors = [
+    {name = "Jakub Pietrzak"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+version = "0.0.1b"
+
+dependencies = ["setuptools"]
+
+[project.optional-dependencies]
+
+test = ["pytest"]
+
+code-check = ["black"]
+
+dev = [
+    "nutrition_app[test]",
+    "nutrition_app[code-check]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nutrition_app*"]
+namespaces = false
