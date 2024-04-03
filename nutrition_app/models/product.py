@@ -1,6 +1,6 @@
-class Product:
+class BaseProduct:
     """
-    this class creates a product
+    this class creates a product blueprint
 
     arguments:
         name: the name of the product
@@ -26,7 +26,7 @@ class Product:
         **kwargs,
     ):
         self.name = name
-        self.id = id
+        self.id_ = id
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
@@ -36,10 +36,12 @@ class Product:
         self.fiber = kwargs.get("fiber", None)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name}, id={self.id}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
+        """this is the representation of the class when the command print is ran on one of the objects from this class"""
+        return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
-    def __eq__(self, other: "Product"):
-        return self.name == other.name and self.id == other.id
+    def __eq__(self, other: "BaseProduct"):
+        """this is the method that helps recognize two seperate products with the same description as the same products"""
+        return self.name == other.name and self.id_ == other.id_
 
     @property
     def protein(self) -> float:
@@ -85,7 +87,63 @@ class Product:
         self._kcal = value
 
 
+class Product(BaseProduct):
+    """this class inherits from another class (BaseProduct) and serves a point of being the real product itself
+
+    arguments:
+    mass: the mass of the product
+    name: the name of the product
+    id: id of the product
+    protein: the amount of protein in the product
+    carbs: the amount of carbs in the product
+    fats: the amount of fats in the product
+    kcal: the amount of kilo-calories in the product
+    kwargs:
+        as you like
+    """
+
+    def __init__(
+        self,
+        mass: float,
+        name: str,
+        id_: int,
+        protein: float,
+        carbs: float,
+        fats: float,
+        kcal: float | None = None,
+        **kwargs,
+    ):
+        super().__init__(name, id_, protein, carbs, fats, kcal, **kwargs)
+        self.mass = mass
+
+    @property
+    def mass(self) -> float:
+        return self._mass
+
+    @mass.setter
+    def mass(self, val: float) -> None:
+        if val <= 0:
+            raise ValueError("Mass can't be below or can't equal 0")
+        self._mass = val
+
+    def to_protein(self):
+        """this converts protein per mass to the acuall value of protein"""
+        return self.protein * self.mass
+
+    def to_carbs(self):
+        """this converts carbohydrates per mass to the acuall value of protein"""
+        return self.carbs * self.mass
+
+    def to_fats(self):
+        """this converts fats per mass to the acuall value of protein"""
+        return self.fats * self.mass
+
+    def to_kcal(self):
+        """this converts calories per mass to the acuall value of protein"""
+        return self.kcal * self.mass
+
+
 if __name__ == "__main__":
-    new_product = Product("ser", 1325243534, 100, 20, 25)
-    sth = Product("ser", 1325243534, 10, 20, 25)
+    new_product = BaseProduct("ser", 1325243534, 100, 20, 25)
+    sth = BaseProduct("ser", 1325243534, 10, 20, 25)
     print(new_product == sth)
