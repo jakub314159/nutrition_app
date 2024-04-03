@@ -1,8 +1,8 @@
 class BaseProduct:
     """
-    this class creates a product blueprint
+    This class creates a product blueprint
 
-    arguments:
+    Args:
         name: the name of the product
         id: id of the product
         protein: the amount of protein in the product
@@ -18,7 +18,7 @@ class BaseProduct:
     def __init__(
         self,
         name: str,
-        id: int,
+        id_: int,
         protein: float,
         carbs: float,
         fats: float,
@@ -26,7 +26,7 @@ class BaseProduct:
         **kwargs,
     ):
         self.name = name
-        self.id_ = id
+        self.id_ = id_
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
@@ -36,11 +36,15 @@ class BaseProduct:
         self.fiber = kwargs.get("fiber", None)
 
     def __repr__(self) -> str:
-        """this is the representation of the class when the command print is ran on one of the objects from this class"""
+        """
+        This is the representation of the class when the command print is run on one of the objects from this class.
+        """
         return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
     def __eq__(self, other: "BaseProduct"):
-        """this is the method that helps recognize two seperate products with the same description as the same products"""
+        """
+        This is the method that helps recognize two separate products with the same description as the same products.
+        """
         return self.name == other.name and self.id_ == other.id_
 
     @property
@@ -88,18 +92,19 @@ class BaseProduct:
 
 
 class Product(BaseProduct):
-    """this class inherits from another class (BaseProduct) and serves a point of being the real product itself
+    """
+    This class inherits from another class (BaseProduct) and serves a point of being the real product itself.
 
-    arguments:
-    mass: the mass of the product
-    name: the name of the product
-    id: id of the product
-    protein: the amount of protein in the product
-    carbs: the amount of carbs in the product
-    fats: the amount of fats in the product
-    kcal: the amount of kilo-calories in the product
-    kwargs:
-        as you like
+    Args:
+        mass: the mass of the product
+        name: the name of the product
+        id: id of the product
+        protein: the amount of protein in the product
+        carbs: the amount of carbs in the product
+        fats: the amount of fats in the product
+        kcal: the amount of kilo-calories in the product
+        kwargs:
+            as you like
     """
 
     def __init__(
