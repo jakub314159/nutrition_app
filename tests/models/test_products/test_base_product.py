@@ -1,11 +1,11 @@
-from nutrition_app.models.product import BaseProduct
+from nutrition_app.models.product import Product
 from pytest import fixture
 import pytest
 
 
 @fixture
 def base_product():
-    base_product = BaseProduct(name="ser", id_=99, protein=10, carbs=20, fats=20)
+    base_product = Product(name="ser", id_=99, protein=10, carbs=20, fats=20)
     return base_product
 
 

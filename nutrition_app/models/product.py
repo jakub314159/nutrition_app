@@ -1,4 +1,10 @@
-class BaseProduct:
+import json
+from pathlib import Path
+
+from nutrition_app import products_dir
+
+
+class Product:
     """
     This class creates a product blueprint
 
@@ -41,7 +47,7 @@ class BaseProduct:
         """
         return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
-    def __eq__(self, other: "BaseProduct"):
+    def __eq__(self, other: "Product"):
         """
         This is the method that helps recognize two separate products with the same description as the same products.
         """
@@ -90,36 +96,63 @@ class BaseProduct:
 
         self._kcal = value
 
+    def to_dict(self) -> dict:
+        return vars(self)
 
-class Product(BaseProduct):
+    def to_json_file(self):
+        inside = self.to_dict()
+        name = f"{self.id_}.json"
+
+        path = products_dir / name
+
+        if path.exists():
+            raise FileExistsError("This id is already taken")
+
+        with open(path, "w") as file:
+            json.dump(inside, file)
+
+
+    @classmethod
+    def from_dict(cls, input_dict: dict) -> 'Product':
+        name = input_dict.get("name")
+        id_ = input_dict.get("id_")
+        protein = input_dict.get("protein")
+        carbs = input_dict.get("carbs")
+        fats = input_dict.get("fats")
+        kcal = input_dict.get("kcal")
+
+        return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
+
+
+
+    @classmethod
+    def from_json_file(cls, id_: int):
+        path = products_dir / f"{id_}.json"
+        if path.exists():
+            with open(path, "r") as file:
+                inside = json.load(file)
+            cls.from_dict(inside)
+        else:
+            raise FileNotFoundError(f"There is no such file named {id_}")
+
+
+
+
+
+
+
+class EatableProduct:
     """
-    This class inherits from another class (BaseProduct) and serves a point of being the real product itself.
+    This class inherits from another class (Product) and serves a point of being the real product itself.
 
     Args:
         mass: the mass of the product
-        name: the name of the product
-        id: id of the product
-        protein: the amount of protein in the product
-        carbs: the amount of carbs in the product
-        fats: the amount of fats in the product
-        kcal: the amount of kilo-calories in the product
-        kwargs:
-            as you like
+        product: object of the class Product
     """
 
-    def __init__(
-        self,
-        mass: float,
-        name: str,
-        id_: int,
-        protein: float,
-        carbs: float,
-        fats: float,
-        kcal: float | None = None,
-        **kwargs,
-    ):
-        super().__init__(name, id_, protein, carbs, fats, kcal, **kwargs)
+    def __init__(self, mass: float, product: Product):
         self.mass = mass
+        self.product = product
 
     @property
     def mass(self) -> float:
@@ -133,22 +166,22 @@ class Product(BaseProduct):
 
     def to_protein(self):
         """this converts protein per mass to the acuall value of protein"""
-        return self.protein * self.mass
+        return self.product.protein * self.mass
 
     def to_carbs(self):
         """this converts carbohydrates per mass to the acuall value of protein"""
-        return self.carbs * self.mass
+        return self.product.carbs * self.mass
 
     def to_fats(self):
         """this converts fats per mass to the acuall value of protein"""
-        return self.fats * self.mass
+        return self.product.fats * self.mass
 
     def to_kcal(self):
         """this converts calories per mass to the acuall value of protein"""
-        return self.kcal * self.mass
+        return self.product.kcal * self.mass
 
 
 if __name__ == "__main__":
-    new_product = BaseProduct("ser", 1325243534, 100, 20, 25)
-    sth = BaseProduct("ser", 1325243534, 10, 20, 25)
+    new_product = Product("ser", 1325243534, 100, 20, 25)
+    sth = Product("ser", 1325243534, 10, 20, 25)
     print(new_product == sth)
