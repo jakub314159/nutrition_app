@@ -38,7 +38,7 @@ class Square(Figure):
 
     def calculate_area(self) -> float:
         """Calculate rectangle area"""
-        return self.a ** 2
+        return self.a**2
 
     def calculate_circumference(self) -> float:
         """Calculate circumference"""

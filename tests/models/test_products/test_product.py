@@ -8,6 +8,7 @@ import json
 
 Product.PRODUCTS_DIR = Path(__file__).parent.parent.parent / "test_db"
 
+
 @fixture
 def product():
     product = Product(name="ser", id_=10000, protein=10, carbs=20, fats=20)
@@ -48,9 +49,6 @@ class TestProduct:
         finally:
             path.unlink()
 
-
-
         assert product.name == inside["name"]
         assert product.id_ == inside["id_"]
         assert new_product == product
-

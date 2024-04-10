@@ -20,13 +20,16 @@ class TestEatableProduct:
     def test_to_protein(self, eatable):
         assert eatable.to_protein() == 10
 
-    def test_to_carbs(self,eatable):
+    def test_to_carbs(self, eatable):
         assert eatable.to_carbs() == 20
 
-    def test_to_fats(self,eatable):
+    def test_to_fats(self, eatable):
         assert eatable.to_fats() == 30
 
     def test_to_kcal(self, eatable):
-        assert eatable.to_kcal() == eatable.product.protein * 4 + eatable.product.carbs * 4 + eatable.product.fats * 9
-
-   
+        assert (
+            eatable.to_kcal()
+            == eatable.product.protein * 4
+            + eatable.product.carbs * 4
+            + eatable.product.fats * 9
+        )

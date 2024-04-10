@@ -8,6 +8,7 @@ class Meal:
     Args:
         products: a list thet holds items from class Product or an empty list if Products are not given.
     """
+
     def __init__(self, products: list[EatableProduct] | None = None):
         self.products = products or []
 
@@ -44,14 +45,17 @@ class Meal:
         ov_fats = sum([x.product.fats for x in self.products])
         return ov_fats
 
+
 if __name__ == "__main__":
-    product1 = EatableProduct(mass=100, product=Product(name="cheese", id_=10923, protein=10, carbs=10, fats=10))
-    product2 = EatableProduct(mass=345, product=Product(name="potato", id_=1353, protein=10, carbs=10, fats=10))
+    product1 = EatableProduct(
+        mass=100,
+        product=Product(name="cheese", id_=10923, protein=10, carbs=10, fats=10),
+    )
+    product2 = EatableProduct(
+        mass=345,
+        product=Product(name="potato", id_=1353, protein=10, carbs=10, fats=10),
+    )
     new_meal = Meal(products=[product1, product2])
 
     print(new_meal.count_ov_fats())
     print(new_meal.count_ov_kcal())
-
-
-
-

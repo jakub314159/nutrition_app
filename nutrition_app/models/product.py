@@ -98,7 +98,6 @@ class Product:
 
         self._kcal = value
 
-
     def to_dict(self) -> dict:
         """
         This converts Product information into a dict
@@ -113,9 +112,7 @@ class Product:
                 key = key[1:]
             new_dict[key] = val
 
-        return  new_dict
-
-
+        return new_dict
 
     def to_json_file(self):
         """
@@ -132,9 +129,8 @@ class Product:
         with open(path, "w") as file:
             json.dump(inside, file)
 
-
     @classmethod
-    def from_dict(cls, input_dict: dict) -> 'Product':
+    def from_dict(cls, input_dict: dict) -> "Product":
         """
         This reads through the dict and creates an object from the class product with the dict variables
 
@@ -151,9 +147,9 @@ class Product:
         fats = input_dict.get("fats")
         kcal = input_dict.get("kcal")
 
-        return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
-
-
+        return cls(
+            name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal
+        )
 
     @classmethod
     def from_json_file(cls, id_: int):
@@ -174,11 +170,6 @@ class Product:
             raise FileNotFoundError(f"There is no such file named {id_}")
 
         return new_object
-
-
-
-
-
 
 
 class EatableProduct:
@@ -224,6 +215,3 @@ class EatableProduct:
 if __name__ == "__main__":
     new_product = Product("salmon", 10, 30, 5, 10)
     new_product.to_json_file()
-
-
-
