@@ -1,0 +1,11 @@
+{
+  "name": "turkey",
+  "id_": 9,
+  "protein": 35,
+  "carbs": 10,
+  "fats": 10,
+  "kcal": 270,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}

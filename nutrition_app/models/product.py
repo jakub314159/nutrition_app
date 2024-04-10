@@ -1,8 +1,14 @@
+import json
+from pathlib import Path
+
+from nutrition_app import products_dir
+
+
 class Product:
     """
-    this class creates a product
+    This class creates a product blueprint
 
-    arguments:
+    Args:
         name: the name of the product
         id: id of the product
         protein: the amount of protein in the product
@@ -15,10 +21,12 @@ class Product:
             fiber: the amount of fiber in the product
     """
 
+    PRODUCTS_DIR = products_dir
+
     def __init__(
         self,
         name: str,
-        id: int,
+        id_: int,
         protein: float,
         carbs: float,
         fats: float,
@@ -26,7 +34,7 @@ class Product:
         **kwargs,
     ):
         self.name = name
-        self.id = id
+        self.id_ = id_
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
@@ -36,10 +44,16 @@ class Product:
         self.fiber = kwargs.get("fiber", None)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name}, id={self.id}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
+        """
+        This is the representation of the class when the command print is run on one of the objects from this class.
+        """
+        return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
     def __eq__(self, other: "Product"):
-        return self.name == other.name and self.id == other.id
+        """
+        This is the method that helps recognize two separate products with the same description as the same products.
+        """
+        return self.name == other.name and self.id_ == other.id_
 
     @property
     def protein(self) -> float:
@@ -84,8 +98,121 @@ class Product:
 
         self._kcal = value
 
+    def to_dict(self) -> dict:
+        """
+        This converts Product information into a dict
+
+        returns: dict
+        """
+        vars_dict = vars(self)
+
+        new_dict = {}
+        for key, val in vars_dict.items():
+            if key.startswith("_"):
+                key = key[1:]
+            new_dict[key] = val
+
+        return new_dict
+
+    def to_json_file(self):
+        """
+        This adds the product to the product_db, and errors out if the product is aleady saved.
+        """
+        inside = self.to_dict()
+        name = f"{self.id_}.json"
+
+        path = self.PRODUCTS_DIR / name
+
+        if path.exists():
+            raise FileExistsError("This id is already taken")
+
+        with open(path, "w") as file:
+            json.dump(inside, file)
+
+    @classmethod
+    def from_dict(cls, input_dict: dict) -> "Product":
+        """
+        This reads through the dict and creates an object from the class product with the dict variables
+
+        Params:
+            input_dict: dict that will be readen through
+        Returns:
+            an object class Product
+        """
+
+        name = input_dict.get("name")
+        id_ = input_dict.get("id_")
+        protein = input_dict.get("protein")
+        carbs = input_dict.get("carbs")
+        fats = input_dict.get("fats")
+        kcal = input_dict.get("kcal")
+
+        return cls(
+            name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal
+        )
+
+    @classmethod
+    def from_json_file(cls, id_: int) -> 'Product':
+        """
+         This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
+
+         Args:
+             id_: this is the idintification number of the product
+
+         Returns:
+             object class Product
+        """
+        path = cls.PRODUCTS_DIR / f"{id_}.json"
+        if path.exists():
+            with open(path, "r") as file:
+                inside = json.load(file)
+            new_object = cls.from_dict(inside)
+        else:
+            raise FileNotFoundError(f"There is no such file named {id_}")
+
+        return new_object
+
+
+class EatableProduct:
+    """
+    This class inherits from another class (Product) and serves a point of being the real product itself.
+
+    Args:
+        mass: the mass of the product
+        product: object of the class Product
+    """
+
+    def __init__(self, mass: float, product: Product):
+        self.mass = mass
+        self.product = product
+
+    @property
+    def mass(self) -> float:
+        return self._mass
+
+    @mass.setter
+    def mass(self, val: float) -> None:
+        if val <= 0:
+            raise ValueError("Mass can't be below or can't equal 0")
+        self._mass = val
+
+    def to_protein(self):
+        """this converts protein per mass to the acuall value of protein"""
+        return self.product.protein * self.mass / 100
+
+    def to_carbs(self):
+        """this converts carbohydrates per mass to the acuall value of protein"""
+        return self.product.carbs * self.mass / 100
+
+    def to_fats(self):
+        """this converts fats per mass to the acuall value of protein"""
+        return self.product.fats * self.mass / 100
+
+    def to_kcal(self):
+        """this converts calories per mass to the acuall value of protein"""
+        return self.product.kcal * self.mass / 100
+
 
 if __name__ == "__main__":
-    new_product = Product("ser", 1325243534, 100, 20, 25)
-    sth = Product("ser", 1325243534, 10, 20, 25)
-    print(new_product == sth)
+    new_product = Product("salmon", 10, 30, 5, 10)
+    new_product.to_json_file()

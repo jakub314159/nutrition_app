@@ -1,0 +1,11 @@
+{
+  "name": "feta",
+  "id_": 7,
+  "protein": 30,
+  "carbs": 15,
+  "fats": 20,
+  "kcal": 360,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}
