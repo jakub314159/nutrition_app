@@ -152,14 +152,15 @@ class Product:
         )
 
     @classmethod
-    def from_json_file(cls, id_: int):
+    def from_json_file(cls, id_: int) -> 'Product':
         """
-        This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
+         This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
 
-        Params:
-            id_: this is the idintification number of the product
-        Returns:
-            object class Product
+         Args:
+             id_: this is the idintification number of the product
+
+         Returns:
+             object class Product
         """
         path = cls.PRODUCTS_DIR / f"{id_}.json"
         if path.exists():
