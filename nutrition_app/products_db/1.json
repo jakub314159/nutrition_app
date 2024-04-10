@@ -1,0 +1,11 @@
+{
+  "name": "cheese",
+  "id_": 1,
+  "protein": 50,
+  "carbs": 25,
+  "fats": 30,
+  "kcal": 570,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}

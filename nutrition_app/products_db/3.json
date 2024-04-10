@@ -1,0 +1,11 @@
+{
+  "name": "bread",
+  "id_": 3,
+  "protein": 20,
+  "carbs": 40,
+  "fats": 20,
+  "kcal": 420,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}

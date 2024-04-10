@@ -1,0 +1,11 @@
+{
+  "name": "salami",
+  "id_": 2,
+  "protein": 35,
+  "carbs": 20,
+  "fats": 15,
+  "kcal": 355,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}

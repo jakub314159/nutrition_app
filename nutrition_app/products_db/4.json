@@ -1,0 +1,11 @@
+{
+  "name": "tomato",
+  "id_": 4,
+  "protein": 5,
+  "carbs": 35,
+  "fats": 10,
+  "kcal": 250,
+  "salt": null,
+  "sugars": null,
+  "fiber": null
+}

@@ -21,6 +21,8 @@ class Product:
             fiber: the amount of fiber in the product
     """
 
+    PRODUCTS_DIR = products_dir
+
     def __init__(
         self,
         name: str,
@@ -96,14 +98,33 @@ class Product:
 
         self._kcal = value
 
+
     def to_dict(self) -> dict:
-        return vars(self)
+        """
+        This converts Product information into a dict
+
+        returns: dict
+        """
+        vars_dict = vars(self)
+
+        new_dict = {}
+        for key, val in vars_dict.items():
+            if key.startswith("_"):
+                key = key[1:]
+            new_dict[key] = val
+
+        return  new_dict
+
+
 
     def to_json_file(self):
+        """
+        This adds the product to the product_db, and errors out if the product is aleady saved.
+        """
         inside = self.to_dict()
         name = f"{self.id_}.json"
 
-        path = products_dir / name
+        path = self.PRODUCTS_DIR / name
 
         if path.exists():
             raise FileExistsError("This id is already taken")
@@ -114,6 +135,15 @@ class Product:
 
     @classmethod
     def from_dict(cls, input_dict: dict) -> 'Product':
+        """
+        This reads through the dict and creates an object from the class product with the dict variables
+
+        Params:
+            input_dict: dict that will be readen through
+        Returns:
+            an object class Product
+        """
+
         name = input_dict.get("name")
         id_ = input_dict.get("id_")
         protein = input_dict.get("protein")
@@ -127,13 +157,23 @@ class Product:
 
     @classmethod
     def from_json_file(cls, id_: int):
-        path = products_dir / f"{id_}.json"
+        """
+        This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
+
+        Params:
+            id_: this is the idintification number of the product
+        Returns:
+            object class Product
+        """
+        path = cls.PRODUCTS_DIR / f"{id_}.json"
         if path.exists():
             with open(path, "r") as file:
                 inside = json.load(file)
-            cls.from_dict(inside)
+            new_object = cls.from_dict(inside)
         else:
             raise FileNotFoundError(f"There is no such file named {id_}")
+
+        return new_object
 
 
 
@@ -166,22 +206,24 @@ class EatableProduct:
 
     def to_protein(self):
         """this converts protein per mass to the acuall value of protein"""
-        return self.product.protein * self.mass
+        return self.product.protein * self.mass / 100
 
     def to_carbs(self):
         """this converts carbohydrates per mass to the acuall value of protein"""
-        return self.product.carbs * self.mass
+        return self.product.carbs * self.mass / 100
 
     def to_fats(self):
         """this converts fats per mass to the acuall value of protein"""
-        return self.product.fats * self.mass
+        return self.product.fats * self.mass / 100
 
     def to_kcal(self):
         """this converts calories per mass to the acuall value of protein"""
-        return self.product.kcal * self.mass
+        return self.product.kcal * self.mass / 100
 
 
 if __name__ == "__main__":
-    new_product = Product("ser", 1325243534, 100, 20, 25)
-    sth = Product("ser", 1325243534, 10, 20, 25)
-    print(new_product == sth)
+    new_product = Product("salmon", 10, 30, 5, 10)
+    new_product.to_json_file()
+
+
+
