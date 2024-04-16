@@ -6,19 +6,20 @@ from nutrition_app import products_dir
 
 class Product:
     """
-    This class creates a product blueprint
+    This is the blueprint to the Product.
 
     Args:
-        name: the name of the product
-        id: id of the product
-        protein: the amount of protein in the product
-        carbs: the amount of carbs in the product
-        fats: the amount of fats in the product
-        kcal: the amount of kilo-calories in the product
+        PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
+        name: the name of the product.
+        id: id of the product.
+        protein: the amount of protein in the product.
+        carbs: the amount of carbs in the product.
+        fats: the amount of fats in the product.
+        kcal: the amount of kilo-calories in the product.
         kwargs:
-            salt: the amount of salt in the product
-            sugars: the amount of sugars in the product
-            fiber: the amount of fiber in the product
+            salt: the amount of salt in the product.
+            sugars: the amount of sugars in the product.
+            fiber: the amount of fiber in the product.
     """
 
     PRODUCTS_DIR = products_dir
@@ -44,15 +45,9 @@ class Product:
         self.fiber = kwargs.get("fiber", None)
 
     def __repr__(self) -> str:
-        """
-        This is the representation of the class when the command print is run on one of the objects from this class.
-        """
         return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
     def __eq__(self, other: "Product"):
-        """
-        This is the method that helps recognize two separate products with the same description as the same products.
-        """
         return self.name == other.name and self.id_ == other.id_
 
     @property
@@ -100,9 +95,10 @@ class Product:
 
     def to_dict(self) -> dict:
         """
-        This converts Product information into a dict
+        This converts Product information into a dict.
 
-        returns: dict
+        returns:
+            This returns a dict from the command vars, that is modified in a way that it could be read by a json.
         """
         vars_dict = vars(self)
 
@@ -132,12 +128,12 @@ class Product:
     @classmethod
     def from_dict(cls, input_dict: dict) -> "Product":
         """
-        This reads through the dict and creates an object from the class product with the dict variables
+        This reads through the dict and creates an object from the class product with the dict variables.
 
-        Params:
-            input_dict: dict that will be readen through
+        Args:
+            input_dict: dict that will be readen through, and from which the new Product will be created.
         Returns:
-            an object class Product
+            An object class Product, that holds the values from the input_dict.
         """
 
         name = input_dict.get("name")
@@ -152,15 +148,15 @@ class Product:
         )
 
     @classmethod
-    def from_json_file(cls, id_: int) -> 'Product':
+    def from_json_file(cls, id_: int) -> "Product":
         """
-         This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
+        This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
 
-         Args:
-             id_: this is the idintification number of the product
+        Args:
+            id_: this is the idintification number of the product.
 
-         Returns:
-             object class Product
+        Returns:
+            object class Product, with the same id as given.
         """
         path = cls.PRODUCTS_DIR / f"{id_}.json"
         if path.exists():
@@ -178,8 +174,8 @@ class EatableProduct:
     This class inherits from another class (Product) and serves a point of being the real product itself.
 
     Args:
-        mass: the mass of the product
-        product: object of the class Product
+        mass: the mass of the product.
+        product: object of the class Product.
     """
 
     def __init__(self, mass: float, product: Product):
@@ -196,21 +192,22 @@ class EatableProduct:
             raise ValueError("Mass can't be below or can't equal 0")
         self._mass = val
 
-    def to_protein(self):
-        """this converts protein per mass to the acuall value of protein"""
-        return self.product.protein * self.mass / 100
+    @property
+    def protein(self) -> float:
+        """returns the right value of protein"""
+        return self.product.protein / 100 * self.mass
 
-    def to_carbs(self):
-        """this converts carbohydrates per mass to the acuall value of protein"""
-        return self.product.carbs * self.mass / 100
+    @property
+    def carbs(self) -> float:
+        return self.product.carbs / 100 * self.mass
 
-    def to_fats(self):
-        """this converts fats per mass to the acuall value of protein"""
-        return self.product.fats * self.mass / 100
+    @property
+    def fats(self) -> float:
+        return self.product.fats / 100 * self.mass
 
-    def to_kcal(self):
-        """this converts calories per mass to the acuall value of protein"""
-        return self.product.kcal * self.mass / 100
+    @property
+    def kcal(self) -> float:
+        return self.product.kcal / 100 * self.mass
 
 
 if __name__ == "__main__":
