@@ -4,7 +4,7 @@ from nutrition_app.models.fast_product import FastProduct
 
 class Meal:
     """
-    Meal is a class, that hold a list o products (class EatableProduct ar FastProduct) and it's variables (for example: name, protein, carbs, fats and kcal).
+    Meal is a class, that hold a list o products (class EatableProduct or FastProduct) and it's variables (for example: name, protein, carbs, fats and kcal).
 
     Args:
         products: a list thet holds items from class EatableProduct, FastProduct or an empty list if products are not provided.

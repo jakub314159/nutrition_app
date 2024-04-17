@@ -1,6 +1,6 @@
 class FastProduct:
     """
-    This class makes an object simular to the Product, but this one has less arguments so that it could be made easily
+    This class makes an object similar to the Product, but this one has less arguments so that it could be made easily
 
     Args:
         name: This is the name of the product

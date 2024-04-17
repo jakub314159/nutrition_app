@@ -28,8 +28,8 @@ class TestMeal:
         meal.delete_product(1)
         assert len(meal.products) == 1
 
-    def test_count_ov_mass(self, meal, fast_product):
-        ov_mass = sum([x.mass for x in meal.products])
+    def test_count_ov_mass(self, meal):
+        ov_mass = sum([x.mass for x in meal.products if isinstance(x, EatableProduct)])
 
         assert ov_mass == meal.count_ov_mass()
 
