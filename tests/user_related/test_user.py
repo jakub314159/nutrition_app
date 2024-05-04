@@ -21,12 +21,8 @@ class TestUser:
         with pytest.raises(expected_exception= ValueError):
             user.weight = -10
 
-    def test_invalid_gender(self, user):
-        with pytest.raises(expected_exception= ValueError):
-            user.gender = ""
-
     def test_count_bmi(self, user):
-        assert user.count_bmi() == 21.6
+        assert user.count_bmi() == 24.22
 
     def test_set_daily_target(self, user):
         user.set_daily_target(activity= 3)

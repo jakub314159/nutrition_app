@@ -2,9 +2,13 @@ from typing import Literal
 
 from nutrition_app.constants import ACTIVITY_COEFFICIENTS, Gender
 
+class IncorrectMacroError(ValueError):
+    """This error will pop up if macro input is not adding up."""
+    pass
 
 
 class DailyTarget:
+    """This class lets you set or create a target for the user."""
     def __init__(self):
         self.protein = None
         self.carbs = None
@@ -12,11 +16,24 @@ class DailyTarget:
         self.kcal = None
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(kcal = {self.kcal}, protein = {self.protein}, carbs = {self.carbs}, fats = {self.fats})"
+        return f"{self.__class__.__name__}(kcal={self.kcal}, protein={self.protein}, carbs={self.carbs}, fats={self.fats})"
 
     def create_daily_target(
         self, kcal: float, protein: float, carbs: float, fats: float
     ) -> None:
+        """
+        This lets you create a daily target.
+
+        Args:
+            kcal: the amount of calories.
+            protein: the amount of protein.
+            carbs: the amount of carbs.
+            fats: the amount of fats.
+        """
+
+        if not round(protein * 4 + carbs * 4 + fats * 9) == round(kcal):
+            raise IncorrectMacroError("kcal from protein, carbs and fats is not adding to the amount of kcal.")
+
         self.kcal = kcal
         self.protein = protein
         self.carbs = carbs
@@ -25,6 +42,17 @@ class DailyTarget:
     def set_daily_target(
         self, weight: float, height: float, activity: Literal[1, 2, 3, 4, 5], age: int, gender: Literal["male", "female"] | str
     ) -> None:
+        """
+        This lets you set a daily target.
+        Args:
+            weight: the users weight.
+            height: the users height.
+            activity: the users level of activity reaching from 1 (the lowest) to 5 (the highest).
+            age: users age.
+            gender: users gender (male or female).
+        Raises:
+            ValueError: when activity doesn't belong into 1 - 5 range and when gender is not male or female.
+        """
 
         if activity not in ACTIVITY_COEFFICIENTS:
             raise ValueError("activity must be an integer in range 1 to 5")
@@ -39,9 +67,9 @@ class DailyTarget:
         self.kcal = round(bmr * ACTIVITY_COEFFICIENTS[activity], -1)
 
 
-        self.protein = self.kcal * 0.25
-        self.carbs = self.kcal * 0.15
-        self.fats = self.kcal * 0.6
+        self.protein = self.kcal * 0.20 / 4
+        self.carbs = self.kcal * 0.50 / 4
+        self.fats = self.kcal * 0.30 / 9
 
 
 if __name__ == "__main__":

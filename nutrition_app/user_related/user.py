@@ -3,7 +3,18 @@ from nutrition_app.numerical_attribute import NumericalAttribute
 
 
 class User:
+    """
+    This is the user representation.
 
+    Attributes:
+        name: users name.
+        surname: users surname.
+        age: users age (must be greater than 0).
+        height: users height that will be turn into meters.
+        weight: users weight.
+        gender: users gender (male or female).
+        daily_target: is an instance of the class DailyTarget, basic value is 0.
+    """
     age = NumericalAttribute()
     height = NumericalAttribute()
     weight = NumericalAttribute()
@@ -21,12 +32,18 @@ class User:
         self.name = name
         self.surname = surname
         self.age = age
-        self.height = height
+        self.height = height if height > 2.5 else height * 100
         self.weight = weight
         self.gender = gender
         self.daily_target = DailyTarget() or daily_target
 
     def count_bmi(self) -> float:
+        """
+        This will count the users bmi.
+        Returns:
+            user bmi
+
+        """
         height = self.height / 100
         return round(self.weight / height ** 2, 2)
 
@@ -36,7 +53,18 @@ class User:
         protein: float = None,
         carbs: float = None,
         fats: float = None,
-    ):
+    ) -> None:
+        """
+        This lets user create a daily target
+        Args:
+            kcal: the amount of kcal needed to be consumed daily
+            protein:
+            carbs:
+            fats:
+
+        Returns:
+
+        """
         self.daily_target.create_daily_target(
             kcal=kcal, protein=protein, carbs=carbs, fats=fats
         )
@@ -50,11 +78,3 @@ class User:
             gender=self.gender,
         )
 
-
-if __name__ == "__main__":
-    new_user = User(
-        name="Jan", surname="Kowalski", age=20, height=180, weight=70, gender="male"
-    )
-    print(new_user.count_bmi())
-    new_user.create_daily_target(kcal=3000, protein=200, carbs=350)
-    print(new_user.daily_target)
