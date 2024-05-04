@@ -16,7 +16,7 @@ dependencies = ["setuptools"]
 
 [project.optional-dependencies]
 
-test = ["pytest"]
+test = ["pytest", "pytest-cov"]
 
 code-check = ["black"]
 
