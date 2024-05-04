@@ -1,4 +1,12 @@
+from nutrition_app.numerical_attribute import NumericalAttribute
+
 class FastProduct:
+
+    kcal = NumericalAttribute()
+    protein = NumericalAttribute()
+    carbs = NumericalAttribute()
+    fats = NumericalAttribute()
+
     """
     This class makes an object similar to the Product, but this one has less arguments so that it could be made easily
 
