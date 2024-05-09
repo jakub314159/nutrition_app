@@ -1,6 +1,7 @@
 from typing import Literal
 
 from nutrition_app.constants import ACTIVITY_COEFFICIENTS, Gender
+from nutrition_app.error_station import error_base
 
 class IncorrectMacroError(ValueError):
     """This error will pop up if macro input is not adding up."""
@@ -8,7 +9,15 @@ class IncorrectMacroError(ValueError):
 
 
 class DailyTarget:
-    """This class lets you set or create a target for the user."""
+    """
+    This class lets you set or create a target for the user.
+
+    Attributes:
+        protein: the ammount od protein
+        carbs: the ammount od carbs
+        fats: the ammount od fats
+        kcal: the ammount od kcal
+    """
     def __init__(self):
         self.protein = None
         self.carbs = None
@@ -29,10 +38,12 @@ class DailyTarget:
             protein: the amount of protein.
             carbs: the amount of carbs.
             fats: the amount of fats.
+        Raises:
+            IncorrectMacroError (super class of ValueError): if the usser input is wrong.
         """
 
         if not round(protein * 4 + carbs * 4 + fats * 9) == round(kcal):
-            raise IncorrectMacroError("kcal from protein, carbs and fats is not adding to the amount of kcal.")
+            raise IncorrectMacroError(error_base.get("ERROR_5"))
 
         self.kcal = kcal
         self.protein = protein
@@ -55,14 +66,14 @@ class DailyTarget:
         """
 
         if activity not in ACTIVITY_COEFFICIENTS:
-            raise ValueError("activity must be an integer in range 1 to 5")
+            raise ValueError(error_base.get("ERROR_6"))
 
         if gender == Gender.MALE:
             bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
         elif gender == Gender.FEMALE:
             bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
         else:
-            raise ValueError("gender must be 'male' or 'female'")
+            raise ValueError(error_base.get("ERROR_7"))
 
         self.kcal = round(bmr * ACTIVITY_COEFFICIENTS[activity], -1)
 

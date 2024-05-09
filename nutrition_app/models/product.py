@@ -2,13 +2,14 @@ import json
 from pathlib import Path
 
 from nutrition_app import products_dir
+from nutrition_app.error_station import error_base
 
 
 class Product:
     """
     This is the blueprint to the Product.
 
-    Args:
+    Attributes:
         PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
         name: the name of the product.
         id: id of the product.
@@ -57,7 +58,7 @@ class Product:
     @protein.setter
     def protein(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError("Protein per 100g can be defined in range 0 - 100")
+            raise ValueError(error_base.get("ERROR_1").format("Protein"))
         self._protein = value
 
     @property
@@ -67,7 +68,7 @@ class Product:
     @carbs.setter
     def carbs(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError("Carbs per 100g can be defined in range 0 - 100")
+            raise ValueError(error_base.get("ERROR_1").format("Carbs"))
         self._carbs = value
 
     @property
@@ -77,7 +78,7 @@ class Product:
     @fats.setter
     def fats(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError("Fats per 100g can be defined in range 0 - 100")
+            raise ValueError(error_base.get("ERROR_1").format("Fats"))
         self._fats = value
 
     @property
@@ -89,7 +90,8 @@ class Product:
         if value is None:
             value = self.protein * 4 + self.carbs * 4 + self.fats * 9
         if value <= 0:
-            raise ValueError("kcal cannot be below or cannot be 0")
+            raise ValueError(error_base.get("ERROR_1").format("Kcal"))
+
 
         self._kcal = value
 
@@ -97,7 +99,7 @@ class Product:
         """
         This converts Product information into a dict.
 
-        returns:
+        Returns:
             This returns a dict from the command vars, that is modified in a way that it could be read by a json.
         """
         vars_dict = vars(self)
@@ -120,7 +122,7 @@ class Product:
         path = self.PRODUCTS_DIR / name
 
         if path.exists():
-            raise FileExistsError("This id is already taken")
+            raise FileExistsError(error_base.get("ERROR_4"))
 
         with open(path, "w") as file:
             json.dump(inside, file)
@@ -164,7 +166,7 @@ class Product:
                 inside = json.load(file)
             new_object = cls.from_dict(inside)
         else:
-            raise FileNotFoundError(f"There is no such file named {id_}")
+            raise FileNotFoundError(error_base.get("ERROR_3").format(id_))
 
         return new_object
 
@@ -173,7 +175,7 @@ class EatableProduct:
     """
     This class inherits from another class (Product) and serves a point of being the real product itself.
 
-    Args:
+    Attributes:
         mass: the mass of the product.
         product: object of the class Product.
     """
@@ -189,12 +191,11 @@ class EatableProduct:
     @mass.setter
     def mass(self, val: float) -> None:
         if val <= 0:
-            raise ValueError("Mass can't be below or can't equal 0")
+            raise ValueError(error_base.get("ERROR_2").format("Mass"))
         self._mass = val
 
     @property
     def protein(self) -> float:
-        """returns the right value of protein"""
         return self.product.protein / 100 * self.mass
 
     @property
@@ -211,5 +212,5 @@ class EatableProduct:
 
 
 if __name__ == "__main__":
-    new_product = Product("salmon", 10, 30, 5, 10)
+    new_product = Product("salmon", 102345, 12, 5, 1)
     new_product.to_json_file()

@@ -36,13 +36,13 @@ class User:
         self.weight = weight
         self.gender = gender
         self.daily_target = DailyTarget() or daily_target
+        self.meal_order = None or ["breakfast", "dinner", "snack", "supper"]
 
     def count_bmi(self) -> float:
         """
         This will count the users bmi.
         Returns:
             user bmi
-
         """
         height = self.height / 100
         return round(self.weight / height ** 2, 2)
@@ -61,9 +61,6 @@ class User:
             protein:
             carbs:
             fats:
-
-        Returns:
-
         """
         self.daily_target.create_daily_target(
             kcal=kcal, protein=protein, carbs=carbs, fats=fats
@@ -78,3 +75,5 @@ class User:
             gender=self.gender,
         )
 
+    def set_meal_order(self, meals:list[str]) -> None:
+        self.meal_order = meals
