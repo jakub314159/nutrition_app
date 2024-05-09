@@ -28,11 +28,24 @@ class Day:
         self._validate(meal_index=meal_index)
         self.meals[self.user.meal_order[meal_index]].delete_product(product_index)
 
+    @property
     def kcal_progres(self):
-        ov_kcal = sum([x.count_ov_kcal() for x in self.meals.values()])
-        progres = f"{round(ov_kcal / self.user.daily_target.kcal * 100)}%"
-        self.progres["kcal"] = progres
+        self.progres["kcal"] = round(sum([x.count_ov_kcal() for x in self.meals.values()]) / self.user.daily_target.kcal)
+        return self.progres["kcal"]
+    @property
+    def protein_progres(self):
+        self.progres["protein"] = round(sum([x.count_ov_protein() for x in self.meals.values()]) / self.user.daily_target.protein)
+        return self.progres["protein"]
 
+    @property
+    def carbs_progres(self):
+        self.progres["carbs"] = round(sum([x.count_ov_carbs() for x in self.meals.values()]) / self.user.daily_target.carbs)
+        return self.progres["carbs"]
+
+    @property
+    def fats_progres(self):
+        self.progres["fats"] = round(sum([x.count_ov_fats() for x in self.meals.values()]) / self.user.daily_target.fats)
+        return self.progres["fats"]
 
 if __name__ == "__main__":
     product_list = [EatableProduct(mass= 100, product=Product("masło", 10, 15, 30, 40, 34)), EatableProduct(mass= 100, product=Product("ser", 10, 10, 30, 40, 34))]
