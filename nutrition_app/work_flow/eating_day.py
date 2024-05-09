@@ -3,6 +3,7 @@ from nutrition_app.models.meal import Meal
 from nutrition_app.user_related.user import User
 from nutrition_app.user_related.daily_target import DailyTarget
 from nutrition_app.models.product import EatableProduct, Product
+from nutrition_app.error_station import error_base
 
 
 
@@ -11,21 +12,26 @@ class Day:
     def __init__(self, user: User | str):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
+        self.progres = {}
 
-    def add_to_meal(self, meal_name: str, products: list[EatableProduct | FastProduct]) -> None:
-
-        if meal_name not in self.user.meal_order:
-            raise ValueError("SOME MESSAGE")
-
-        # for product in products:
-        #     self.meals[meal_name].add_product()
+    def _validate(self, meal_index) -> None:
+        if meal_index >= len(self.user.meal_order):
+            raise ValueError(error_base.get("Error_10").format(len(user.meal_order) - 1))
 
 
+    def add_to_meal(self, meal_index: int, products: list[EatableProduct | FastProduct]) -> None:
+        self._validate(meal_index=meal_index)
+        for product in products:
+            self.meals[self.user.meal_order[meal_index]].add_product(product)
 
-    def list_progres(self):
+    def delete_from_meal(self, meal_index: int, product_index: int):
+        self._validate(meal_index=meal_index)
+        self.meals[self.user.meal_order[meal_index]].delete_product(product_index)
+
+    def kcal_progres(self):
         ov_kcal = sum([x.count_ov_kcal() for x in self.meals.values()])
         progres = f"{round(ov_kcal / self.user.daily_target.kcal * 100)}%"
-        return progres
+        self.progres["kcal"] = progres
 
 
 if __name__ == "__main__":

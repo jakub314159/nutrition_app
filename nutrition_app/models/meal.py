@@ -1,5 +1,6 @@
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.models.fast_product import FastProduct
+from nutrition_app.error_station import error_base
 
 
 class Meal:
@@ -29,6 +30,10 @@ class Meal:
         Args:
             index: int needed to delete a particular item from self.products
         """
+        if index >= len(self.products):
+            raise ValueError(error_base.get("ERROR_10").format(len(self.products) - 1))
+
+
         self.products.pop(index)
 
     def count_ov_mass(self) -> float | str:

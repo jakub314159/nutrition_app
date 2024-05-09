@@ -8,4 +8,5 @@ error_base = {
     "Error_7": "gender must be 'male' or 'female'",
     "Error_8": "activity must be an integer in range 1 to 5",
     "Error_9": "activity must be an integer in range 1 to 5",
+    "Error_10": "index number cannot be higher than {}"
 }
