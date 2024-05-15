@@ -31,8 +31,7 @@ class Meal:
             index: int needed to delete a particular item from self.products
         """
         if index >= len(self.products):
-            raise ValueError(error_base.get("ERROR_10").format(len(self.products) - 1))
-
+            raise ValueError(error_base.get("E10").format(len(self.products) - 1))
 
         self.products.pop(index)
 

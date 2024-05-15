@@ -16,6 +16,7 @@ class User:
         daily_target: is an instance of the class DailyTarget, basic value is 0.
         meal_order: this is the order in which the user will eat his meals.
     """
+
     age = NumericalAttribute()
     height = NumericalAttribute()
     weight = NumericalAttribute()
@@ -42,6 +43,11 @@ class User:
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name}, surname={self.surname}, weight={self.weight}, height={self.height}, age={self.age}, gender={self.gender}, daily_target={self.daily_target}, meal_order={self.meal_order})"
 
+    def __eq__(self, other: 'User'):
+        if self.name == other.name and self.surname == other.surname and self.age == other.age:
+            return True
+        return False
+
     def count_bmi(self) -> float:
         """
         This will count the users bmi.
@@ -49,7 +55,7 @@ class User:
             user bmi
         """
         height = self.height / 100
-        return round(self.weight / height ** 2, 2)
+        return round(self.weight / height**2, 2)
 
     def create_daily_target(
         self,
@@ -84,7 +90,7 @@ class User:
             gender=self.gender,
         )
 
-    def set_meal_order(self, meals:list[str]) -> None:
+    def set_meal_order(self, meals: list[str]) -> None:
         self.meal_order = meals
 
     def to_dict(self):

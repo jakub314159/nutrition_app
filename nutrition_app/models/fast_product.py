@@ -1,5 +1,6 @@
 from nutrition_app.numerical_attribute import NumericalAttribute
 
+
 class FastProduct:
     """
     This class makes an object similar to the Product, but this one has less arguments so that it could be made easily.

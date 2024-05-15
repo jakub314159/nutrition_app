@@ -58,7 +58,7 @@ class Product:
     @protein.setter
     def protein(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError(error_base.get("ERROR_1").format("Protein"))
+            raise ValueError(error_base.get("E1").format("Protein"))
         self._protein = value
 
     @property
@@ -68,7 +68,7 @@ class Product:
     @carbs.setter
     def carbs(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError(error_base.get("ERROR_1").format("Carbs"))
+            raise ValueError(error_base.get("E1").format("Carbs"))
         self._carbs = value
 
     @property
@@ -78,7 +78,7 @@ class Product:
     @fats.setter
     def fats(self, value) -> None:
         if value < 0 or value > 100:
-            raise ValueError(error_base.get("ERROR_1").format("Fats"))
+            raise ValueError(error_base.get("E1").format("Fats"))
         self._fats = value
 
     @property
@@ -90,8 +90,7 @@ class Product:
         if value is None:
             value = self.protein * 4 + self.carbs * 4 + self.fats * 9
         if value <= 0:
-            raise ValueError(error_base.get("ERROR_1").format("Kcal"))
-
+            raise ValueError(error_base.get("E1").format("Kcal"))
 
         self._kcal = value
 
@@ -122,7 +121,8 @@ class Product:
         path = self.PRODUCTS_DIR / name
 
         if path.exists():
-            raise FileExistsError(error_base.get("ERROR_4"))
+            raise FileExistsError(error_base.get("E4"))
+
 
         with open(path, "w") as file:
             json.dump(inside, file)
@@ -166,7 +166,7 @@ class Product:
                 inside = json.load(file)
             new_object = cls.from_dict(inside)
         else:
-            raise FileNotFoundError(error_base.get("ERROR_3").format(id_))
+            raise FileNotFoundError(error_base.get("E3").format(id_))
 
         return new_object
 
@@ -191,7 +191,7 @@ class EatableProduct:
     @mass.setter
     def mass(self, val: float) -> None:
         if val <= 0:
-            raise ValueError(error_base.get("ERROR_2").format("Mass"))
+            raise ValueError(error_base.get("E2").format("Mass"))
         self._mass = val
 
     @property
