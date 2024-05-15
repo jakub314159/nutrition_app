@@ -87,6 +87,9 @@ class Meal:
         ov_fats = sum([x.fats for x in self.products])
         return ov_fats
 
+    def to_dict(self):
+        return self.__dict__
+
 
 if __name__ == "__main__":
     product1 = EatableProduct(

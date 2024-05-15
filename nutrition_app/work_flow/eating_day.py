@@ -1,60 +1,172 @@
+from typing import Literal
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.models.meal import Meal
 from nutrition_app.user_related.user import User
 from nutrition_app.user_related.daily_target import DailyTarget
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.error_station import error_base
+from datetime import datetime
+from pathlib import Path
+import json
 
 
 
 
 class Day:
-    def __init__(self, user: User | str):
+    """
+    This class supports a single day of eating for the user.
+
+    Attributes:
+        user: an object of the User class.
+        date: the date when the eating plan is created.
+    """
+    def __init__(self, user: User, date: str = None):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
         self.progres = {}
+        self.date = date or self.set_date()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(user={self.user})"
+
+    @staticmethod
+    def set_date():
+        now = datetime.now()
+        week_dict = {
+            0: "Monday",
+            1: "Tuesday",
+            2: "Wednesday",
+            3: "Thursday",
+            4: "Friday",
+            5: "Saturdey",
+            6: "Sunday"
+        }
+        return f"{now.day}-{now.month}-{now.year}, {week_dict.get(now.weekday())}"
 
     def _validate(self, meal_index) -> None:
+        """
+        This checks if meal_index is in range of the users meal order.
+        Args:
+            meal_index: the index that is going to be checked.
+        Raises:
+            ValueError: an error from the error base satting that the index is to high.
+        """
         if meal_index >= len(self.user.meal_order):
             raise ValueError(error_base.get("Error_10").format(len(user.meal_order) - 1))
 
 
     def add_to_meal(self, meal_index: int, products: list[EatableProduct | FastProduct]) -> None:
+        """
+        This lets the user add a list of EatableProducts and / or FastProducts.
+        Args:
+            meal_index: This is the index that specifies the meal to which the products will be added.
+            products: the list of objects from EatableProduct or FastProduct classes.
+        """
         self._validate(meal_index=meal_index)
         for product in products:
             self.meals[self.user.meal_order[meal_index]].add_product(product)
 
     def delete_from_meal(self, meal_index: int, product_index: int):
+        """
+        This lets the user to delete a product from the meal.
+        Args:
+            meal_index: This is the index that specifies the meal to which the products will be added.
+            product_index: This is the index that specifies the product from which the products will be deleted.
+        """
         self._validate(meal_index=meal_index)
         self.meals[self.user.meal_order[meal_index]].delete_product(product_index)
 
     @property
     def kcal_progres(self):
-        self.progres["kcal"] = round(sum([x.count_ov_kcal() for x in self.meals.values()]) / self.user.daily_target.kcal)
+        self.progres["kcal"] = round(sum([x.count_ov_kcal() for x in self.meals.values()]) / self.user.daily_target.kcal * 100)
         return self.progres["kcal"]
     @property
     def protein_progres(self):
-        self.progres["protein"] = round(sum([x.count_ov_protein() for x in self.meals.values()]) / self.user.daily_target.protein)
+        self.progres["protein"] = round(sum([x.count_ov_protein() for x in self.meals.values()]) / self.user.daily_target.protein * 100)
         return self.progres["protein"]
 
     @property
     def carbs_progres(self):
-        self.progres["carbs"] = round(sum([x.count_ov_carbs() for x in self.meals.values()]) / self.user.daily_target.carbs)
+        self.progres["carbs"] = round(sum([x.count_ov_carbs() for x in self.meals.values()]) / self.user.daily_target.carbs * 100)
         return self.progres["carbs"]
 
     @property
     def fats_progres(self):
-        self.progres["fats"] = round(sum([x.count_ov_fats() for x in self.meals.values()]) / self.user.daily_target.fats)
+        self.progres["fats"] = round(sum([x.count_ov_fats() for x in self.meals.values()]) / self.user.daily_target.fats * 100)
         return self.progres["fats"]
 
+    @classmethod
+    def nwd(cls, a, b):
+        while b:
+            a, b = b, a % b
+        return a
+
+
+    def caller(self):
+        """
+        Just for now, deleted after mergeing with master.
+        """
+        self.kcal_progres
+        self.protein_progres
+        self.carbs_progres
+        self.fats_progres
+
+
+    def get_progres(self, variable: Literal["overall", "kcal", "protein", "carbs", "fats"]) -> list[str]:
+        """
+        This lists progres for the user.
+        Args:
+            variable: the nutrient on which the progres will be checked,
+
+        Returns:
+            The list cointainig the progres bar and the procentage.
+        """
+        if variable == "overall":
+            full = round(int(self.get_progres("kcal")[1].split("%")[0]) + int(self.get_progres("protein")[1].split("%")[0]) + int(self.get_progres("carbs")[1].split("%")[0]) + int(self.get_progres("fats")[1].split("%")[0]) / 400)
+            less = 100 - full
+        else:
+            self.caller()
+            full = self.progres[variable]
+            less = 100 - full
+        old = full
+        nwd = self.nwd(a=full, b=100)
+        if nwd > 0:
+            full /= nwd
+            less /= nwd
+        return [int(full) * "▰" + int(less) * "▱", f"{old}%"]
+
+    def to_json(self):
+        """
+        This converts Product information into a json file.
+        """
+
+        path = Path(__file__).parent.parent / "days_saved" / f"{self.date}.json"
+        user_dict = self.user.to_dict()
+        user_dict["daily_target"] = user.daily_target.to_dict()
+        meals = {x:y.to_dict() for x,y in self.meals.items()}
+        for meal in meals.values():
+            meal["products"] = [x.to_dict() for x in meal["products"]]
+            for product in meal["products"]:
+                product["product"] = product["product"].to_dict()
+        dump_dict = {
+            "user": user_dict,
+            "date": self.date,
+            "meals": meals,
+        }
+
+        with open(path, "w") as file:
+            json.dump(dump_dict, file, indent= 4)
+
+
 if __name__ == "__main__":
-    product_list = [EatableProduct(mass= 100, product=Product("masło", 10, 15, 30, 40, 34)), EatableProduct(mass= 100, product=Product("ser", 10, 10, 30, 40, 34))]
-    meals_dict = {"breakfast": Meal(product_list)}
+    product_list = [EatableProduct(mass=100, product= Product("ser", 12423, 20, 30, 20))]
     user = User(
         name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male"
     )
     user.set_daily_target(activity=3)
-
-    new_day = Day(meals=meals_dict, user=user)
-    print(new_day.list_progres())
-
+    new_day = Day(user=user)
+    new_day.add_to_meal(meal_index=0, products=product_list)
+    print(new_day.progres)
+    print(new_day.get_progres("overall"))
+    print(new_day.date)
+    new_day.to_json()

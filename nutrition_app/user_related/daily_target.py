@@ -81,9 +81,12 @@ class DailyTarget:
         self.protein = self.kcal * 0.20 / 4
         self.carbs = self.kcal * 0.50 / 4
         self.fats = self.kcal * 0.30 / 9
+    def to_dict(self):
+        return self.__dict__
 
 
 if __name__ == "__main__":
     new_target = DailyTarget()
     print(new_target.set_daily_target(70, 170, 3, 18, "male"))
     print(new_target)
+

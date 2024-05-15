@@ -210,6 +210,9 @@ class EatableProduct:
     def kcal(self) -> float:
         return self.product.kcal / 100 * self.mass
 
+    def to_dict(self):
+        return self.__dict__
+
 
 if __name__ == "__main__":
     new_product = Product("salmon", 102345, 12, 5, 1)
