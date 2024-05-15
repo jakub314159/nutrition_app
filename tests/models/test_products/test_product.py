@@ -7,6 +7,7 @@ import json
 
 
 Product.PRODUCTS_DIR = Path(__file__).parent.parent.parent / "test_db"
+Product.PRODUCTS_DIR.mkdir(exist_ok=True)
 
 
 @fixture
