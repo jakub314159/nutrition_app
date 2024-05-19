@@ -37,14 +37,18 @@ class User:
         self.height = height if height > 2.5 else height * 100
         self.weight = weight
         self.gender = gender
-        self.daily_target = DailyTarget() or daily_target
+        self.daily_target = daily_target or DailyTarget()
         self.meal_order = None or ["breakfast", "dinner", "snack", "supper"]
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name}, surname={self.surname}, weight={self.weight}, height={self.height}, age={self.age}, gender={self.gender}, daily_target={self.daily_target}, meal_order={self.meal_order})"
 
-    def __eq__(self, other: 'User'):
-        if self.name == other.name and self.surname == other.surname and self.age == other.age:
+    def __eq__(self, other: "User"):
+        if (
+            self.name == other.name
+            and self.surname == other.surname
+            and self.age == other.age
+        ):
             return True
         return False
 
@@ -60,9 +64,9 @@ class User:
     def create_daily_target(
         self,
         kcal: float,
-        protein: float = None,
-        carbs: float = None,
-        fats: float = None,
+        protein: float,
+        carbs: float,
+        fats: float,
     ) -> None:
         """
         This lets user create a daily target

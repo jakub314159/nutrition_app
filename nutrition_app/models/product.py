@@ -111,18 +111,17 @@ class Product:
 
         return new_dict
 
-    def to_json_file(self):
+    def to_json_file(self, path: Path = None):
         """
         This adds the product to the product_db, and errors out if the product is aleady saved.
         """
         inside = self.to_dict()
         name = f"{self.id_}.json"
 
-        path = self.PRODUCTS_DIR / name
+        path = path or self.PRODUCTS_DIR / name
 
         if path.exists():
             raise FileExistsError(error_base.get("E4"))
-
 
         with open(path, "w") as file:
             json.dump(inside, file)
@@ -212,8 +211,3 @@ class EatableProduct:
 
     def to_dict(self):
         return self.__dict__
-
-
-if __name__ == "__main__":
-    new_product = Product("salmon", 102345, 12, 5, 1)
-    new_product.to_json_file()

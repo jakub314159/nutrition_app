@@ -88,16 +88,3 @@ class Meal:
 
     def to_dict(self):
         return self.__dict__
-
-
-if __name__ == "__main__":
-    product1 = EatableProduct(
-        mass=100,
-        product=Product(name="cheese", id_=10923, protein=10, carbs=10, fats=10),
-    )
-    product2 = FastProduct("cheese", 100.5, 23, 10, 20)
-    new_meal = Meal(products=[product1, product2])
-
-    print(new_meal.count_ov_mass())
-    print(new_meal.count_ov_fats())
-    print(new_meal.count_ov_kcal())

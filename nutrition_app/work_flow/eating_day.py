@@ -3,12 +3,13 @@ from datetime import datetime
 from pathlib import Path
 import json
 
+from nutrition_app.user_related.daily_target import DailyTarget
+
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.models.meal import Meal
 from nutrition_app.user_related.user import User
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.error_station import error_base
-
 
 
 class Day:
@@ -25,21 +26,17 @@ class Day:
         self.meals: dict[str, Meal] = {
             meal_name: Meal() for meal_name in self.user.meal_order
         }
-        self.progres = {
-            "kcal": 0,
-            "protein": 0,
-            "carbs": 0,
-            "fats": 0
-        }
+        self.progres = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
         self.date = date or self.set_date()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(user={self.user})"
 
-    def __eq__(self, other: 'Day') -> bool:
+    def __eq__(self, other: "Day") -> bool:
         if self.date == other.date and self.user == other.user:
             return True
         return False
+
     @staticmethod
     def set_date():
         now = datetime.now()
@@ -64,7 +61,7 @@ class Day:
         """
         if meal_index >= len(self.user.meal_order):
             raise ValueError(
-                error_base.get("E10").format(len(user.meal_order) - 1)
+                error_base.get("E10").format(len(self.user.meal_order) - 1)
             )
 
     def add_to_meal(
@@ -145,7 +142,7 @@ class Day:
             case "carbs":
                 local_progress = self.carbs_progres
             case "fats":
-                local_progress =  self.fats_progres
+                local_progress = self.fats_progres
             case _:
                 raise ValueError(error_base.get("E9").format(variable))
 
@@ -153,14 +150,14 @@ class Day:
         less = 20 - full
         return [int(full) * "▰" + int(less) * "▱", f"{self.progres[variable]}%"]
 
-    def to_json(self):
+    def to_json(self, path: Path | str = None):
         """
         This converts Product information into a json file.
         """
 
-        path = Path(__file__).parent.parent / "days_saved" / f"{self.date}.json"
+        path = path or Path(__file__).parent.parent / "days_saved" / f"{self.date}.json"
         user_dict = self.user.to_dict()
-        user_dict["daily_target"] = user.daily_target.to_dict()
+        user_dict["daily_target"] = self.user.daily_target.to_dict()
         meals = {x: y.to_dict() for x, y in self.meals.items()}
         for meal in meals.values():
             meal["products"] = [x.to_dict() for x in meal["products"]]
@@ -176,14 +173,33 @@ class Day:
             json.dump(dump_dict, file, indent=4)
 
 
-if __name__ == "__main__":
-    product_list = [EatableProduct(mass=100, product=Product("ser", 12423, 20, 30, 20))]
-    user = User(
-        name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male"
-    )
-    user.set_daily_target(activity=3)
-    new_day = Day(user=user)
-    new_day.add_to_meal(meal_index=0, products=product_list)
-    print(new_day.get_progres_bar("kcal"))
-    print(new_day.date)
-    new_day.to_json()
+target = DailyTarget()
+target.create_daily_target(kcal=170, protein=10, carbs=10, fats=10)
+
+print(target.kcal)
+
+user = User(
+    name="Jan",
+    surname="Kowalski",
+    weight=70,
+    height=170,
+    age=18,
+    gender="male",
+    daily_target=target,
+)
+
+print(user.daily_target.kcal)
+
+day = Day(user=user)
+day.add_to_meal(
+    meal_index=0,
+    products=[
+        EatableProduct(
+            mass=100,
+            product=Product(
+                name="ser", id_=10000, protein=10, carbs=10, fats=10, kcal=170
+            ),
+        )
+    ],
+)
+print(day.user.daily_target)

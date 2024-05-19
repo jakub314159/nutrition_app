@@ -91,9 +91,3 @@ class DailyTarget:
 
     def to_dict(self):
         return self.__dict__
-
-
-if __name__ == "__main__":
-    new_target = DailyTarget()
-    print(new_target.set_daily_target(70, 170, 3, 18, "male"))
-    print(new_target)

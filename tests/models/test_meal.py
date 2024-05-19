@@ -1,3 +1,4 @@
+import pytest
 from pytest import fixture
 from nutrition_app.models.meal import Meal
 from nutrition_app.models.product import Product, EatableProduct
@@ -23,6 +24,10 @@ class TestMeal:
 
         meal.add_product(product3)
         assert len(meal.products) == 3
+
+    def test_delete_product_value_error(self, meal):
+        with pytest.raises(expected_exception=ValueError):
+            meal.delete_product(len(meal.products) + 1)
 
     def test_delete_product(self, meal):
         meal.delete_product(1)
