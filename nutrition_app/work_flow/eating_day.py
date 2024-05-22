@@ -150,9 +150,12 @@ class Day:
         less = 20 - full
         return [int(full) * "▰" + int(less) * "▱", f"{self.progres[variable]}%"]
 
-    def to_json(self, path: Path | str = None):
+    def to_json(self, path: Path | str = None) -> None:
         """
         This converts Product information into a json file.
+
+        Args:
+            path: a place in which your json will be stored.
         """
 
         path = path or Path(__file__).parent.parent / "days_saved" / f"{self.date}.json"
