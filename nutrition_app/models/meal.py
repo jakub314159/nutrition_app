@@ -1,5 +1,6 @@
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.models.fast_product import FastProduct
+from nutrition_app.error_station import error_base
 
 
 class Meal:
@@ -29,6 +30,9 @@ class Meal:
         Args:
             index: int needed to delete a particular item from self.products
         """
+        if index >= len(self.products):
+            raise ValueError(error_base.get("E10").format(len(self.products) - 1))
+
         self.products.pop(index)
 
     def count_ov_mass(self) -> float | str:
@@ -82,15 +86,5 @@ class Meal:
         ov_fats = sum([x.fats for x in self.products])
         return ov_fats
 
-
-if __name__ == "__main__":
-    product1 = EatableProduct(
-        mass=100,
-        product=Product(name="cheese", id_=10923, protein=10, carbs=10, fats=10),
-    )
-    product2 = FastProduct("cheese", 100.5, 23, 10, 20)
-    new_meal = Meal(products=[product1, product2])
-
-    print(new_meal.count_ov_mass())
-    print(new_meal.count_ov_fats())
-    print(new_meal.count_ov_kcal())
+    def to_dict(self):
+        return self.__dict__

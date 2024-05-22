@@ -7,6 +7,7 @@ import json
 
 
 Product.PRODUCTS_DIR = Path(__file__).parent.parent.parent / "test_db"
+Product.PRODUCTS_DIR.mkdir(exist_ok=True)
 
 
 @fixture
@@ -16,6 +17,13 @@ def product():
 
 
 class TestProduct:
+
+    def test_repr(self, product):
+        assert (
+            f"{product.__class__.__name__}(name={product.name}, id={product.id_}, protein={product.protein}, carbs={product.carbs}, fats={product.fats}, kcal={product.kcal})"
+            == product.__repr__()
+        )
+
     @pytest.mark.parametrize("dose", (-6, 1000))
     def test_protein_wrong_dose(self, product, dose):
         with pytest.raises(expected_exception=ValueError):
@@ -34,6 +42,15 @@ class TestProduct:
     def test_kcal_underdose(self, product):
         with pytest.raises(expected_exception=ValueError):
             product.kcal = -6
+
+    def test_to_json_file_file_exists_error(self, product):
+        with pytest.raises(expected_exception=FileExistsError):
+            product.id_ = 10
+            product.to_json_file()
+
+    def test_from_json_file_file_not_found(self, product):
+        with pytest.raises(expected_exception=FileNotFoundError):
+            product.from_json_file(id_=124681234)
 
     def test_to_and_from_json_file(self, product):
         product.to_json_file()
