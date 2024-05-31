@@ -29,3 +29,6 @@ dev = [
 where = ["."]
 include = ["nutrition_app*"]
 namespaces = false
+
+[tool.black]
+line-length = 120
