@@ -21,18 +21,35 @@ class DailyTarget:
         kcal: the ammount od kcal
     """
 
-    def __init__(self):
-        self.protein = None
-        self.carbs = None
-        self.fats = None
-        self.kcal = None
+    def __init__(self, protein=None, carbs=None, fats=None, kcal=None):
+        self._validate_macro(protein, carbs, fats, kcal)
+        self.protein = protein
+        self.carbs = carbs
+        self.fats = fats
+        self.kcal = kcal
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(kcal={self.kcal}, protein={self.protein}, carbs={self.carbs}, fats={self.fats})"
+        return (
+            f"{self.__class__.__name__}(kcal={self.kcal}, protein={self.protein}, carbs={self.carbs}, fats={self.fats})"
+        )
 
-    def create_daily_target(
-        self, kcal: float, protein: float, carbs: float, fats: float
-    ) -> None:
+    def __eq__(self, other):
+        if (
+            self.kcal == other.kcal
+            and self.protein == other.protein
+            and self.carbs == other.carbs
+            and self.fats == other.fats
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def _validate_macro(protein, carbs, fats, kcal):
+        if protein or carbs or fats or kcal:
+            if not round(protein * 4 + carbs * 4 + fats * 9) == round(kcal):
+                raise IncorrectMacroError(error_base.get("E5"))
+
+    def create_daily_target(self, kcal: float, protein: float, carbs: float, fats: float) -> None:
         """
         This lets you create a daily target.
 
@@ -44,9 +61,7 @@ class DailyTarget:
         Raises:
             IncorrectMacroError (super class of ValueError): if the usser input is wrong.
         """
-
-        if not round(protein * 4 + carbs * 4 + fats * 9) == round(kcal):
-            raise IncorrectMacroError(error_base.get("E5"))
+        self._validate_macro(protein, carbs, fats, kcal)
 
         self.kcal = kcal
         self.protein = protein
@@ -91,3 +106,7 @@ class DailyTarget:
 
     def to_dict(self):
         return self.__dict__
+
+    @classmethod
+    def from_dict(cls, dict) -> "DailyTarget":
+        return cls(**dict)

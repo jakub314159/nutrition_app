@@ -9,4 +9,7 @@ error_base = {
     "E8": "activity must be an integer in range 1 to 5",
     "E9": "progress bar doesn't display {}",
     "E10": "index number cannot be higher than {}",
+    "E11": "{} is already taken",
+    "E12": "{} is not registered",
+    "E13": "Login information is incorrect",
 }

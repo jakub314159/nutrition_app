@@ -144,9 +144,7 @@ class Product:
         fats = input_dict.get("fats")
         kcal = input_dict.get("kcal")
 
-        return cls(
-            name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal
-        )
+        return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
 
     @classmethod
     def from_json_file(cls, id_: int) -> "Product":

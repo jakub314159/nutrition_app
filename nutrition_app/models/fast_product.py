@@ -18,9 +18,7 @@ class FastProduct:
     carbs = NumericalAttribute()
     fats = NumericalAttribute()
 
-    def __init__(
-        self, name: str, kcal: float, protein: float, carbs: float, fats: float
-    ):
+    def __init__(self, name: str, kcal: float, protein: float, carbs: float, fats: float):
         self.name = name
         self.kcal = kcal
         self.protein = protein
