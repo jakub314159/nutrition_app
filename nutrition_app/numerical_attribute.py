@@ -8,7 +8,5 @@ class NumericalAttribute:
 
     def __set__(self, instance, value):
         if type(value) not in (int, float) or value < 0:
-            raise ValueError(
-                f"{self.storage_name} must be an int or a float greater than 0"
-            )
+            raise ValueError(f"{self.storage_name} must be an int or a float greater than 0")
         instance.__dict__[self.storage_name] = value

@@ -1,4 +1,4 @@
-from nutrition_app.user_related.daily_target import DailyTarget
+from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.numerical_attribute import NumericalAttribute
 
 
@@ -44,11 +44,7 @@ class User:
         return f"{self.__class__.__name__}(name={self.name}, surname={self.surname}, weight={self.weight}, height={self.height}, age={self.age}, gender={self.gender}, daily_target={self.daily_target}, meal_order={self.meal_order})"
 
     def __eq__(self, other: "User"):
-        if (
-            self.name == other.name
-            and self.surname == other.surname
-            and self.age == other.age
-        ):
+        if self.name == other.name and self.surname == other.surname and self.age == other.age:
             return True
         return False
 
@@ -76,9 +72,7 @@ class User:
             carbs:
             fats:
         """
-        self.daily_target.create_daily_target(
-            kcal=kcal, protein=protein, carbs=carbs, fats=fats
-        )
+        self.daily_target.create_daily_target(kcal=kcal, protein=protein, carbs=carbs, fats=fats)
 
     def set_daily_target(self, activity):
         """
@@ -98,4 +92,21 @@ class User:
         self.meal_order = meals
 
     def to_dict(self):
-        return self.__dict__
+        user_dict = self.__dict__
+        user_dict["daily_target"] = self.daily_target.to_dict()
+        return user_dict
+
+    def daily_target_dict(self):
+        return self.daily_target.to_dict()
+
+    @classmethod
+    def from_dict(cls, data) -> "User":
+        return cls(
+            name=data["name"],
+            surname=data["surname"],
+            age=data["age"],
+            height=data["height"],
+            weight=data["weight"],
+            gender=data["gender"],
+            daily_target=DailyTarget.from_dict(data["daily_target"]),
+        )

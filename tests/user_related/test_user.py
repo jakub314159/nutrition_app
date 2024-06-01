@@ -1,6 +1,6 @@
 import pytest
 
-from nutrition_app.user_related.user import User
+from nutrition_app.user.user import User
 from pytest import fixture
 
 
@@ -68,3 +68,9 @@ class TestUser:
     def test_set_meal_order(self, user):
         user.set_meal_order(["1", "2", "3"])
         assert user.meal_order == ["1", "2", "3"]
+
+    def test_from_dict(self, user):
+        data = user.to_dict()
+        new = User.from_dict(data)
+
+        assert new == user

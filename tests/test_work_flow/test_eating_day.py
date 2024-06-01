@@ -6,8 +6,8 @@ from pytest import fixture, raises
 
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.work_flow.eating_day import Day
-from nutrition_app.user_related.user import User
-from nutrition_app.user_related.daily_target import DailyTarget
+from nutrition_app.user.user import User
+from nutrition_app.user.daily_target import DailyTarget
 
 
 WEEK_DICT = {

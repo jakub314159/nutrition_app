@@ -1,6 +1,6 @@
 import pytest
 from pytest import fixture
-from nutrition_app.user_related.daily_target import DailyTarget, IncorrectMacroError
+from nutrition_app.user.daily_target import DailyTarget, IncorrectMacroError
 
 
 @fixture
@@ -16,6 +16,11 @@ class TestDailyTarget:
             f"{daily_target.__class__.__name__}(kcal={daily_target.kcal}, protein={daily_target.protein}, carbs={daily_target.carbs}, fats={daily_target.fats})"
             == daily_target.__repr__()
         )
+
+    def test_eq(self, daily_target):
+        new = DailyTarget()
+        new.set_daily_target(100, 190, 3, 18, "male")
+        assert daily_target != new
 
     def test_create_daily_target_incorrect_macro_error(self, daily_target):
         with pytest.raises(expected_exception=IncorrectMacroError) as e:
@@ -56,3 +61,9 @@ class TestDailyTarget:
             daily_target.set_daily_target(
                 weight=70, height=170, activity=3, age=18, gender="gender"
             )
+    def test_from_dict(self, daily_target):
+        daily_dict = daily_target.to_dict()
+        new = DailyTarget.from_dict(daily_dict)
+
+        assert new == daily_target
+

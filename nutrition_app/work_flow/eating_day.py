@@ -3,11 +3,11 @@ from datetime import datetime
 from pathlib import Path
 import json
 
-from nutrition_app.user_related.daily_target import DailyTarget
+from nutrition_app.user.daily_target import DailyTarget
 
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.models.meal import Meal
-from nutrition_app.user_related.user import User
+from nutrition_app.user.user import User
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.error_station import error_base
 
@@ -23,9 +23,7 @@ class Day:
 
     def __init__(self, user: User, date: str = None):
         self.user = user
-        self.meals: dict[str, Meal] = {
-            meal_name: Meal() for meal_name in self.user.meal_order
-        }
+        self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
         self.progres = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
         self.date = date or self.set_date()
 
@@ -60,13 +58,9 @@ class Day:
             ValueError: an error from the error base satting that the index is to high.
         """
         if meal_index >= len(self.user.meal_order):
-            raise ValueError(
-                error_base.get("E10").format(len(self.user.meal_order) - 1)
-            )
+            raise ValueError(error_base.get("E10").format(len(self.user.meal_order) - 1))
 
-    def add_to_meal(
-        self, meal_index: int, products: list[EatableProduct | FastProduct]
-    ) -> None:
+    def add_to_meal(self, meal_index: int, products: list[EatableProduct | FastProduct]) -> None:
         """
         This lets the user add a list of EatableProducts and / or FastProducts.
         Args:
@@ -90,42 +84,32 @@ class Day:
     @property
     def kcal_progres(self):
         self.progres["kcal"] = round(
-            sum([x.count_ov_kcal() for x in self.meals.values()])
-            / self.user.daily_target.kcal
-            * 100
+            sum([x.count_ov_kcal() for x in self.meals.values()]) / self.user.daily_target.kcal * 100
         )
         return self.progres["kcal"]
 
     @property
     def protein_progres(self):
         self.progres["protein"] = round(
-            sum([x.count_ov_protein() for x in self.meals.values()])
-            / self.user.daily_target.protein
-            * 100
+            sum([x.count_ov_protein() for x in self.meals.values()]) / self.user.daily_target.protein * 100
         )
         return self.progres["protein"]
 
     @property
     def carbs_progres(self):
         self.progres["carbs"] = round(
-            sum([x.count_ov_carbs() for x in self.meals.values()])
-            / self.user.daily_target.carbs
-            * 100
+            sum([x.count_ov_carbs() for x in self.meals.values()]) / self.user.daily_target.carbs * 100
         )
         return self.progres["carbs"]
 
     @property
     def fats_progres(self):
         self.progres["fats"] = round(
-            sum([x.count_ov_fats() for x in self.meals.values()])
-            / self.user.daily_target.fats
-            * 100
+            sum([x.count_ov_fats() for x in self.meals.values()]) / self.user.daily_target.fats * 100
         )
         return self.progres["fats"]
 
-    def get_progres_bar(
-        self, variable: Literal["kcal", "protein", "carbs", "fats"]
-    ) -> list[str]:
+    def get_progres_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"]) -> list[str]:
         """
         This lists progres for the user.
         Args:
@@ -160,7 +144,6 @@ class Day:
 
         path = path or Path(__file__).parent.parent / "days_saved" / f"{self.date}.json"
         user_dict = self.user.to_dict()
-        user_dict["daily_target"] = self.user.daily_target.to_dict()
         meals = {x: y.to_dict() for x, y in self.meals.items()}
         for meal in meals.values():
             meal["products"] = [x.to_dict() for x in meal["products"]]
@@ -199,9 +182,7 @@ day.add_to_meal(
     products=[
         EatableProduct(
             mass=100,
-            product=Product(
-                name="ser", id_=10000, protein=10, carbs=10, fats=10, kcal=170
-            ),
+            product=Product(name="ser", id_=10000, protein=10, carbs=10, fats=10, kcal=170),
         )
     ],
 )
