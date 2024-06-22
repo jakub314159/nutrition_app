@@ -29,13 +29,13 @@ class SQLConnector:
             None
         """
         # let first element be the primary key by default
-        _connection = sqlite3.connect(str(self._database_path))
-        _cursor = _connection.cursor()
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
         fields = list(fields)
         fields[0] = f"{fields[0]} PRIMARY KEY"
         query = f"CREATE TABLE IF NOT EXISTS {table_name}({', '.join(fields)})"
-        _cursor.execute(query)
-        _connection.close()
+        cursor.execute(query)
+        connection.close()
 
     def remove_table(self, table_name: str) -> None:
         """
@@ -47,8 +47,11 @@ class SQLConnector:
         Returns:
             None
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
         query = "DROP TABLE %s" % table_name
-        self._cursor.execute(query)
+        cursor.execute(query)
+        connection.close()
 
     def get_existing_tables(self) -> tuple[str, ...]:
         """
@@ -58,9 +61,12 @@ class SQLConnector:
             tuple[str, ...]: existing tables
                 Example: ('users', 'products')
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
         query = "SELECT name FROM sqlite_master"
-        res = self._cursor.execute(query)
-        return res.fetchone()
+        res = cursor.execute(query).fetchone()
+        connection.close()
+        return res
 
     def add_to_table(self, table_name: str, records: list[tuple]) -> None:
         """
@@ -74,14 +80,15 @@ class SQLConnector:
         Returns:
             None
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
         query = f"INSERT INTO {table_name} VALUES({', '.join(['?']*len(records[0]))})"
 
-        try:
-            self._cursor.executemany(query, records)
-            self._connection.commit()
-        except sqlite3.IntegrityError as e:
-            # TODO: To replace it with logger.warning
-            print("Cannot perform operation due to:", e)
+        cursor.executemany(query, records)
+        connection.commit()
+
+
+        connection.close()
 
     def get_record_from_table(
         self, table_name: str, key_name: str, key_val: Any
@@ -99,16 +106,16 @@ class SQLConnector:
         Returns:
             dict[str, Any]: output data with chosen record as a dict
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
+
         query = f"SELECT * FROM {table_name} WHERE {key_name} = ?"
-        res = self._cursor.execute(query, [key_val])
+        res = cursor.execute(query, [key_val])
         tuple_res = res.fetchone()
         keys = [desc[0] for desc in res.description]
         res_dict = {k: v for k, v in zip(keys, tuple_res)}
+        connection.close()
         return res_dict
-
-    def close(self):
-        """Close the connection with database."""
-        self._connection.close()
 
     def get_table(self, table_name: str) -> dict[str, Any]:
         """
@@ -120,8 +127,11 @@ class SQLConnector:
         Returns:
             dict[str, list[Any]]: table transformed to a dictionary
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
+
         query = f"SELECT * from {table_name}"
-        res = self._cursor.execute(query)
+        res = cursor.execute(query)
         many = res.fetchall()
         keys = [desc[0] for desc in res.description]
         result_dict = {key: [] for key in keys}
@@ -129,25 +139,31 @@ class SQLConnector:
         for record in many:
             for key, value in zip(keys, record):
                 result_dict[key].append(value)
+        connection.close()
 
         return result_dict
 
-    def update_record_in_table(self, table_name: str, primary_key_column: str, old_value: Any, new_value: Any) -> None:
+    def update_record_in_table(self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str,  new_value: Any) -> None:
         """
         Update a specific value in the chosen table for a given primary key.
 
         Args:
             table_name(str): name of the table to update records in
-            primary_key_column(str): name of the primary key column in the table (e.g. id)
-            old_value(Any): the current value of the primary key to be updated
+            primary_key_name(str): name of the primary key column in the table (e.g. id)
+            primary_key_val(Any): the current value of the primary key to be updated
+            key_name(str): the column to be updated
             new_value(Any): the new value to be set
 
         Returns:
             None
         """
-        query = f"UPDATE {table_name} SET {primary_key_column} = ? WHERE {primary_key_column} = ?"
-        self._cursor.execute(query, [new_value, old_value])
-        self._connection.commit()
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
+
+        query = f"UPDATE {table_name} SET {key_name} = ? WHERE {primary_key_name} = ?"
+        cursor.execute(query, (new_value, primary_key_val))
+        connection.commit()
+        connection.close()
 
     def remove_from_table(self, table_name: str, column_name: str, value: any) -> None:
         """
@@ -161,10 +177,12 @@ class SQLConnector:
         Returns:
             None
         """
+        connection = sqlite3.connect(str(self._database_path))
+        cursor = connection.cursor()
+
         query = f"DELETE FROM {table_name} WHERE {column_name} = ?"
 
-        try:
-            self._cursor.execute(query, (value,))
-            self._connection.commit()
-        except sqlite3.IntegrityError as e:
-            print("Cannot perform operation due to:", e)
+
+        cursor.execute(query, (value,))
+        connection.commit()
+        connection.close()

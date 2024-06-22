@@ -57,3 +57,6 @@ class TestMeal:
         ov_fats = sum([x.fats for x in meal.products])
 
         assert ov_fats == meal.count_ov_fats()
+
+    def test_to_dict(self, meal):
+        assert meal.to_dict() == meal.__dict__

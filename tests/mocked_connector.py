@@ -30,16 +30,14 @@ class MockedConnector(BaseConnector):
                 return e
         raise ValueError("key_val not found")
 
-    def close(self):
-        pass
-
     def get_table(self, table_name: str) -> dict[str, Any]:
         return self.tables[table_name]
 
     def update_record_in_table(
-        self, table_name: str, column_name: str, column_val: Any, update_column: str, new_value: Any
-    ) -> None:
-        pass
+    self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
+) -> None:
+        index = self.tables[table_name][primary_key_name].index(primary_key_val)
+        self.tables[table_name][key_name][index] = new_value
 
     def remove_from_table(self, table_name: str, column_name: str, value: any) -> None:
         pass

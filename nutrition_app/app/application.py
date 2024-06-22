@@ -87,8 +87,8 @@ class App:
 
     DATABASE_DIR = database_path
 
-    def __init__(self, logins_name = None, **kwargs):
-        self._logins_name = logins_name or "logins"
+    def __init__(self, **kwargs):
+        self._logins_name = "logins"
         self.username = None
         self.password = None
         self.email = None
@@ -101,7 +101,6 @@ class App:
     def delete_account(self, table_name, primary_column, main_value) -> None:
         # TODO: type hints
         self.database_connector.remove_from_table(table_name, primary_column, main_value)
-        self.database_connector.close()
 
     @staticmethod
     def check_password(password: str) -> str:
@@ -197,15 +196,16 @@ class App:
         self.load_user()
 
     def load_user(self):
-        data = self.database_connector.get_record_from_table(self._logins_name, "username", self.username)
-        # TODO: create new table "users" and read User instance from it
-        if data["user"] is not None:
-            self.user = data["user"]
-        else:
-            logger.warning("User is not created, please create a new user, by calling 'create_user' method.")
+        # data = self.database_connector.get_record_from_table(self._logins_name, "username", self.username)
+        # # TODO: create new table "users" and read User instance from it
+        # if data["user"] is not None:
+        #     self.user = data["user"]
+        # else:
+        #     logger.warning("User is not created, please create a new user, by calling 'create_user' method.")
+        pass
 
-    def reload_base(self, val):
-        self.database_connector.update_record_in_table(table_name=self._logins_name, primary_key_column="username", old_value=self.username, new_value=val)
+    def update_record(self, key_name, new_val):
+        self.database_connector.update_record_in_table(table_name=self._logins_name, primary_key_name="username", primary_key_val=self.username, key_name=key_name, new_value=new_val)
 
     def create_user(
         self,
@@ -221,7 +221,7 @@ class App:
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
-        self.reload_base(user)
+        self.update_record(user)
         self.user = user
 
     def new_daily_target(

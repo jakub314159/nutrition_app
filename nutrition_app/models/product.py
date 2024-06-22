@@ -103,15 +103,7 @@ class Product:
         Returns:
             This returns a dict from the command vars, that is modified in a way that it could be read by a json.
         """
-        vars_dict = vars(self)
-
-        new_dict = {}
-        for key, val in vars_dict.items():
-            if key.startswith("_"):
-                key = key[1:]
-            new_dict[key] = val
-
-        return new_dict
+        return vars(self)
 
     # @classmethod
     # def _check_products_table(cls) -> bool:
@@ -131,25 +123,7 @@ class Product:
     #     connector.add_to_table(self.TABLE_NAME, [(self.id_, self.name, self.protein, self.carbs, self.fats, self.kcal, self.salt, self.sugars, self.fiber)])
 
 
-    @classmethod
-    def from_dict(cls, input_dict: dict) -> "Product":
-        """
-        This reads through the dict and creates an object from the class product with the dict variables.
 
-        Args:
-            input_dict: dict that will be readen through, and from which the new Product will be created.
-        Returns:
-            An object class Product, that holds the values from the input_dict.
-        """
-
-        name = input_dict.get("name")
-        id_ = input_dict.get("id_")
-        protein = input_dict.get("protein")
-        carbs = input_dict.get("carbs")
-        fats = input_dict.get("fats")
-        kcal = input_dict.get("kcal")
-
-        return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
 
     # @classmethod
     # def from_sql_db(cls, id_: int) -> dict:
@@ -157,27 +131,6 @@ class Product:
     #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
     #     return record
 
-
-    @classmethod
-    def from_json_file(cls, id_: int) -> "Product":
-        """
-        This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
-
-        Args:
-            id_: this is the idintification number of the product.
-
-        Returns:
-            object class Product, with the same id as given.
-        """
-        path = cls.PRODUCTS_DIR / f"{id_}.json"
-        if path.exists():
-            with open(path, "r") as file:
-                inside = json.load(file)
-            new_object = cls.from_dict(inside)
-        else:
-            raise FileNotFoundError(error_base.get("E3").format(id_))
-
-        return new_object
 
 
 class EatableProduct:
@@ -218,6 +171,3 @@ class EatableProduct:
     @property
     def kcal(self) -> float:
         return self.product.kcal / 100 * self.mass
-
-    def to_dict(self):
-        return self.__dict__

@@ -169,18 +169,3 @@ class TestDay:
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):
             day.get_progres_bar(variable="error")
-
-    def test_to_json(self, day):
-        path = Path(__file__).parent.parent / "test_db" / "test_to_json.json"
-        day.to_json(path=path)
-
-        with open(path, "r") as file:
-            u_dict = json.load(file)
-
-        path.unlink()
-
-        assert (
-            u_dict["user"]["name"] == day.user.name
-            and u_dict["user"]["surname"] == day.user.surname
-            and u_dict["user"]["age"] == day.user.age
-        )

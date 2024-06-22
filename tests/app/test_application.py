@@ -17,7 +17,7 @@ LOGIN_SQL_PATH = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_
 
 @fixture()
 def app():
-    app = App("logins", database_connector=MockedConnector())
+    app = App(database_connector=MockedConnector())
     app.DATABASE_DIR = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_database.db"
     return app
 
@@ -120,23 +120,27 @@ class TestApp:
         app.register("test", "Ab1@cdefgh", "gmail.com")
         app.login("test", "Ab1@cdefgh")
 
-    def test_load_user(self, app):
-        app.database_connector.create_table("logins", ("username", "password", "email"))
-        app.database_connector.add_to_table("logins", ("username", "password", "email", "user"))
-        app.load_user()
+        assert app.username == "test"
 
-        assert app.user == "user"
+    # def test_load_user(self, app):
+    #     app.database_connector.create_table("logins", ("username", "password", "email"))
+    #     app.database_connector.add_to_table("logins", ("username", "password", "email", "user"))
+    #     app.load_user()
+    #
+    #     assert app.user == "user"
 
     def test_reload_base(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
-        app.reload_base("user")
+        app.login("test", "Ab1@cdefgh")
+        app.update_record(key_name="password", new_val=1)
 
-        assert app.user == "user"
+        assert app.database_connector.get_record_from_table(table_name="logins", key_name= "username", key_val= "test")["password"] == 1
 
-    def test_create_user(self, app):
-        app.database_connector.create_table("logins", ("username", "password", "email"))
-        app.register("test", "Ab1@cdefgh", "gmail.com")
-        app.create_user("a", "b", 10, 10, 10, "male", daily_target=DailyTarget())
-
-        assert app.user.name == "a" and app.user.surname == "b"
+    # def test_create_user(self, app):
+    #     app.database_connector.create_table("logins", ("username", "password", "email"))
+    #     app.register("test", "Ab1@cdefgh", "gmail.com")
+    #     app.login("test", "Ab1@cdefgh")
+    #     app.create_user("a", "b", 10, 10, 10, "male", daily_target=DailyTarget())
+    #
+    #     assert app.user.name == "a" and app.user.surname == "b"

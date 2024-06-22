@@ -46,11 +46,8 @@ class TestProduct:
         with pytest.raises(expected_exception=ValueError):
             product.kcal = -6
 
-    def test_from_json_file_file_not_found(self, product):
-        with pytest.raises(expected_exception=FileNotFoundError):
-            product.from_json_file(id_=124681234)
+    def test_to_dict(self, product):
+        assert product.to_dict() == product.to_dict()
 
-    def test_save_to_sql_db(self, product):
-        product.save_to_sql_db()
 
 

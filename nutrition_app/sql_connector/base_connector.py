@@ -19,7 +19,6 @@ class BaseConnector(ABC):
         Returns:
         None
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def remove_table(self, table_name: str) -> None:
@@ -32,7 +31,6 @@ class BaseConnector(ABC):
         Returns:
             None
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def get_existing_tables(self) -> tuple[str, ...]:
@@ -43,7 +41,6 @@ class BaseConnector(ABC):
             tuple[str, ...]: existing tables
                 Example: ('users', 'products')
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def add_to_table(self, table_name: str, records: list[tuple]) -> None:
@@ -58,7 +55,6 @@ class BaseConnector(ABC):
         Returns:
             None
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def get_record_from_table(self, table_name: str, key_name: str, key_val: Any) -> dict[str, Any]:
@@ -75,12 +71,6 @@ class BaseConnector(ABC):
         Returns:
             dict[str, Any]: output data with chosen record as a dict
         """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def close(self):
-        """Close the connection with database."""
-        raise NotImplementedError()
 
     @abstractmethod
     def get_table(self, table_name: str) -> dict[str, Any]:
@@ -93,26 +83,24 @@ class BaseConnector(ABC):
         Returns:
             dict[str, list[Any]]: table transformed to a dictionary
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def update_record_in_table(
-        self, table_name: str, column_name: str, column_val: Any, update_column: str, new_value: Any
-    ) -> None:
+    self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
+) -> None:
         """
         Update a specific value in the chosen table for a given primary key.
 
         Args:
             table_name(str): name of the table to update records in
-            column_name(str): name of the key in the table (e.g. id or username)
-            column_val(Any): the key value of the record to update
-            update_column(str): the column name of the value to update
+            primary_key_name(str): name of the primary key column in the table (e.g. id)
+            primary_key_val(Any): the current value of the primary key to be updated
+            key_name(str): the column to be updated
             new_value(Any): the new value to be set
 
         Returns:
             None
         """
-        raise NotImplementedError()
 
     @abstractmethod
     def remove_from_table(self, table_name: str, column_name: str, value: any) -> None:
@@ -127,4 +115,3 @@ class BaseConnector(ABC):
         Returns:
             None
         """
-        raise NotImplementedError()
