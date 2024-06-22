@@ -1,9 +1,16 @@
 import os
+import sys
+import time
+from pathlib import Path
+
+import pytest
+
 from nutrition_app.sql_connector import SQLConnector
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="we don't test it on windows >;")
 class TestSQLConnector:
-    database = "test_database.db"
+    database = str(Path(__file__).parent / "test_database.db")
 
     def test_01_create_table(self):
         try:
@@ -12,6 +19,7 @@ class TestSQLConnector:
         except Exception as e:
             raise Exception(e)
         finally:
+            sql_con.close()
             os.remove(self.database)
 
     def test_02_remove_table(self):
@@ -22,6 +30,7 @@ class TestSQLConnector:
         except Exception as e:
             raise Exception
         finally:
+            sql_con.close()
             os.remove(self.database)
 
     def test_03_get_existing_tables(self):
@@ -31,9 +40,10 @@ class TestSQLConnector:
             tables = sql_con.get_existing_tables()
         except Exception as e:
             tables = None
-            pass
         finally:
-            os.remove(self.database)
+            sql_con.close()
+        time.sleep(1)
+        os.remove(self.database)
 
         assert tables == ("users",)
 
@@ -48,7 +58,9 @@ class TestSQLConnector:
             john = None
             jane = None
         finally:
-            os.remove(self.database)
+            sql_con.close()
+        time.sleep(1)
+        os.remove(self.database)
 
         assert john == {"id": 1, "name": "John", "surname": "Doe"}
         assert jane == {"id": 2, "name": "Jane", "surname": "Doe"}
@@ -62,6 +74,8 @@ class TestSQLConnector:
         except Exception as e:
             table = {}
         finally:
-            os.remove(self.database)
+            sql_con.close()
+        time.sleep(1)
+        os.remove(self.database)
 
         assert table == {"id": [1, 2], "name": ["John", "Jane"], "surname": ["Doe", "Doe"]}

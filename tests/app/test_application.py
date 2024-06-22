@@ -6,18 +6,20 @@ from base64 import b64encode
 
 from nutrition_app.app.application import App, UsernameTakenError, EmailTakenError, WrongMadePasswordError, IncorrectLoginInformation
 from nutrition_app.user.daily_target import DailyTarget
+from nutrition_app.sql_connector import SQLConnector
+from tests.mocked_connector import MockedConnector
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "test_db" / "test_login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "test_db" / "test_user_base.json"
 
 
+LOGIN_SQL_PATH = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_database.db"
+
 @fixture()
 def app():
-    app = App()
+    app = App("logins", database_connector=MockedConnector())
+    app.DATABASE_DIR = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_database.db"
     return app
-
-
-
 
 
 class TestApp:
@@ -25,13 +27,15 @@ class TestApp:
         assert app.__repr__() == f"{app.__class__.__name__}()"
 
     def test_delete_account(self, app):
-        app.register("1", "Ab1@cdefgh", "3", LOGIN_DIRPATH)
-        with open(LOGIN_DIRPATH, "r") as file:
-            numer = len(json.load(file)["users"])
-        app.delete_account(1, LOGIN_DIRPATH)
-        with open(LOGIN_DIRPATH, "r") as file:
-            new_numer = len(json.load(file)["users"])
-        assert numer == new_numer + 1
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("1", "Ab1@cdefgh", "3")
+        old_val = app.database_connector.get_record_from_table("logins", "username", "1")
+
+        app.delete_account("logins", "username", "1")
+        new_val = app.database_connector.get_existing_tables()
+
+        assert old_val["username"] == "1" and "1" not in new_val
+
 
     def test_check_password_to_low_char(self, app):
         with raises(expected_exception=WrongMadePasswordError):
@@ -63,71 +67,76 @@ class TestApp:
 
     def test_register_username_taken_error(self, app):
         with raises(expected_exception=UsernameTakenError):
-            app.register("user", "Ab1@cdefgh", "email.com", LOGIN_DIRPATH)
+            app.database_connector.create_table("logins", ("username", "password", "email"))
+            app.register("test", "Ab1@cdefgh", "gmail.com")
+            app.register("test", "Ab1@cdefgh", "email.com")
 
-    def test_register_email_taken_error(self, app):
+
+    def test_register_username_taken_error(self, app):
         with raises(expected_exception=EmailTakenError):
-            app.register("1", "Ab1@cdefgh", "email.com", LOGIN_DIRPATH)
+            app.database_connector.create_table("logins", ("username", "password", "email"))
+            app.register("test", "Ab1@cdefgh", "gmail.com")
+            app.register("user", "Ab1@cdefgh", "gmail.com")
+
+    def test_check_products_table(self, app):
+        val = app._check_products_table()
+        assert val == False
+
+    def test_create_products_table(self, app):
+        app._create_products_table()
+        val = app._check_products_table()
+        assert val == True
+
+    def test_save_to_sql_db(self, app):
+        app.save_to_sql_db("nie", "tak", "no")
+        sql_dict = app.database_connector.get_table("logins")
+        assert sql_dict["email"][0] == "no" and sql_dict["password"][0] == "tak" and sql_dict["username"][0] == "nie"
+
 
     def test_register(self, app):
-        username="1"
-        password="Ab1@cdefgh"
-        email="3"
-        app.register(username=username, password=password, email=email, dirpath=LOGIN_DIRPATH)
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("test", "Ab1@cdefgh", "gmail.com")
 
-        with open(LOGIN_DIRPATH, "r") as file:
-            inside = json.load(file)
+        sql_dict = app.database_connector.get_table("logins")
 
-        app.delete_account(1, LOGIN_DIRPATH)
+        assert sql_dict["username"][0] == "test" and sql_dict["password"][0] == "Ab1@cdefgh" and sql_dict["email"][0] == "gmail.com"
 
-        assert inside["users"][1]["username"] == username and inside["users"][1]["password"] == b64encode(password.encode("utf-8")).decode("utf-8") and inside["users"][1]["email"] == b64encode(email.encode("utf-8")).decode("utf-8")
 
     def test_login_incorrect_username(self, app):
         with raises(expected_exception=IncorrectLoginInformation):
-            app.login("1", "1234")
+            app.database_connector.create_table("logins", ("username", "password", "email"))
+            app.register("test", "Ab1@cdefgh", "gmail.com")
+            app.login("test1", "Ab1@cdefgh")
 
     def test_login_incorrect_passowrd(self, app):
         with raises(expected_exception=IncorrectLoginInformation):
-            app.login("user", "password")
+            app.database_connector.create_table("logins", ("username", "password", "email"))
+            app.register("test", "Ab1@cdefgh", "gmail.com")
+            app.login("test", "Ab1@cdefg")
+
 
     def test_login(self, app):
-        app.login(username="user", password="Ab1@cdefgh", dirpath= LOGIN_DIRPATH)
-        assert app.username == "user" and app.password == "Ab1@cdefgh"
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("test", "Ab1@cdefgh", "gmail.com")
+        app.login("test", "Ab1@cdefgh")
+
+    def test_load_user(self, app):
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.database_connector.add_to_table("logins", ("username", "password", "email", "user"))
+        app.load_user()
+
+        assert app.user == "user"
 
     def test_reload_base(self, app):
-        user_dict = {"test": "1"}
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("test", "Ab1@cdefgh", "gmail.com")
+        app.reload_base("user")
 
-        with open(USER_DIRPATH, "r") as file:
-            inside = json.load(file)
-
-        app.reload_base(user_dict, USER_DIRPATH)
-
-        with open(USER_DIRPATH, "r") as file:
-            new = json.load(file)
-
-        assert len(new["users"]) == len(inside["users"]) + 1
+        assert app.user == "user"
 
     def test_create_user(self, app):
-        app.login(username="user", password="Ab1@cdefgh", dirpath= LOGIN_DIRPATH)
-        app.create_user("jan", "kowalski", 18, 180, 70, "male", DailyTarget(), USER_DIRPATH)
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("test", "Ab1@cdefgh", "gmail.com")
+        app.create_user("a", "b", 10, 10, 10, "male", daily_target=DailyTarget())
 
-        with open(USER_DIRPATH, "r") as file:
-            new = json.load(file)
-
-        usernames = [x['user'] for x in new["users"] if x['username'] == "user"]
-
-        filler = {
-            "users": [
-            ]
-        }
-
-        with open(USER_DIRPATH, "w") as file:
-            json.dump(filler, file, indent=4)
-
-        assert usernames[0]["name"] == "jan" and usernames[0]["surname"] == "kowalski"
-
-
-
-
-
-
+        assert app.user.name == "a" and app.user.surname == "b"

@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
-from nutrition_app import products_dir
+from nutrition_app import database_path
 from nutrition_app.error_station import error_base
+from nutrition_app.sql_connector import SQLConnector
 
 
 class Product:
@@ -23,7 +24,8 @@ class Product:
             fiber: the amount of fiber in the product.
     """
 
-    PRODUCTS_DIR = products_dir
+    PRODUCTS_DIR = database_path
+    TABLE_NAME = "products"
 
     def __init__(
         self,
@@ -111,20 +113,23 @@ class Product:
 
         return new_dict
 
-    def to_json_file(self, path: Path = None):
-        """
-        This adds the product to the product_db, and errors out if the product is aleady saved.
-        """
-        inside = self.to_dict()
-        name = f"{self.id_}.json"
+    # @classmethod
+    # def _check_products_table(cls) -> bool:
+    #     connector = SQLConnector(database_path=cls.PRODUCTS_DIR)
+    #     tables = connector.get_existing_tables()
+    #     return bool(tables) and cls.TABLE_NAME in tables
+    #
+    # def _create_products_table(self):
+    #     if not self._check_products_table():
+    #         connector = SQLConnector(database_path=self.PRODUCTS_DIR)
+    #         connector.create_table(self.TABLE_NAME, ("id", "name", "protein", "carbs", "fats", "kcal", "salt", "sugars", "fiber"))
+    #
+    #
+    # def save_to_sql_db(self):
+    #     self._create_products_table()
+    #     connector = SQLConnector(database_path=self.PRODUCTS_DIR)
+    #     connector.add_to_table(self.TABLE_NAME, [(self.id_, self.name, self.protein, self.carbs, self.fats, self.kcal, self.salt, self.sugars, self.fiber)])
 
-        path = path or self.PRODUCTS_DIR / name
-
-        if path.exists():
-            raise FileExistsError(error_base.get("E4"))
-
-        with open(path, "w") as file:
-            json.dump(inside, file)
 
     @classmethod
     def from_dict(cls, input_dict: dict) -> "Product":
@@ -145,6 +150,13 @@ class Product:
         kcal = input_dict.get("kcal")
 
         return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
+
+    # @classmethod
+    # def from_sql_db(cls, id_: int) -> dict:
+    #     connector = SQLConnector(database_path=database_path)
+    #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
+    #     return record
+
 
     @classmethod
     def from_json_file(cls, id_: int) -> "Product":

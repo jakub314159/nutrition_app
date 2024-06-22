@@ -129,3 +129,40 @@ class SQLConnector:
                 result_dict[key].append(value)
 
         return result_dict
+
+    def update_record_in_table(self, table_name: str, primary_key_column: str, old_value: Any, new_value: Any) -> None:
+        """
+        Update a specific value in the chosen table for a given primary key.
+
+        Args:
+            table_name(str): name of the table to update records in
+            primary_key_column(str): name of the primary key column in the table (e.g. id)
+            old_value(Any): the current value of the primary key to be updated
+            new_value(Any): the new value to be set
+
+        Returns:
+            None
+        """
+        query = f"UPDATE {table_name} SET {primary_key_column} = ? WHERE {primary_key_column} = ?"
+        self._cursor.execute(query, [new_value, old_value])
+        self._connection.commit()
+
+    def remove_from_table(self, table_name: str, column_name: str, value: any) -> None:
+        """
+        Remove records from the chosen table based on the given column and value.
+
+        Args:
+            table_name (str): name of the table from which records will be removed
+            column_name (str): name of the column to use in the condition
+            value (any): value to match for the condition
+
+        Returns:
+            None
+        """
+        query = f"DELETE FROM {table_name} WHERE {column_name} = ?"
+
+        try:
+            self._cursor.execute(query, (value,))
+            self._connection.commit()
+        except sqlite3.IntegrityError as e:
+            print("Cannot perform operation due to:", e)

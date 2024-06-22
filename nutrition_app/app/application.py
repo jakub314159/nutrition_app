@@ -1,11 +1,13 @@
 import json
+import sqlite3
 from base64 import b64encode, b64decode
 from pathlib import Path
 from random import choices, shuffle
 from typing import Literal
 
 from nutrition_app.error_station import error_base
-from nutrition_app import logger
+from nutrition_app import logger, database_path
+from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 
@@ -83,29 +85,22 @@ class App:
         email: The email required to register to the app.
     """
 
-    def __init__(self):
+    DATABASE_DIR = database_path
+
+    def __init__(self, logins_name = None, **kwargs):
+        self._logins_name = logins_name or "logins"
         self.username = None
         self.password = None
         self.email = None
         self.user = None
+        self.database_connector = kwargs.pop("database_connector") or SQLConnector(self.DATABASE_DIR)
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
-    @staticmethod
-    def delete_account(index: int, dirpath: Path = None) -> None:
-        """
-        This lets the user delete the app from the user_base.
-        Args:
-            index: the number in the "users" dict that is needed to delete the account.
-            dirpath: dirpath to the user_base is provided but can be changed for test purposes.
-        """
-        path = dirpath or LOGIN_DIRPATH
-        with open(path, "r") as file:
-            inside = json.load(file)
-        inside["users"].pop(index)
-        with open(path, "w") as file:
-            json.dump(inside, file, indent=2)
+
+    def delete_account(self, table_name, primary_column, main_value) -> None:
+        self.database_connector.remove_from_table(table_name, primary_column, main_value)
 
     @staticmethod
     def check_password(password: str) -> str:
@@ -146,44 +141,57 @@ class App:
 
         return "".join(sum_list)
 
-    @classmethod
-    def register(cls, username: str, password: str, email: str, dirpath: Path = None) -> None:
+
+    def _check_products_table(self) -> bool:
+        tables = self.database_connector.get_existing_tables()
+        return bool(tables) and self._logins_name in tables
+
+
+    def _delete_products_table(self, name):
+        self.database_connector.remove_table(name)
+
+    def _create_products_table(self):
+        if not self._check_products_table():
+            self.database_connector.create_table(self._logins_name, ("username", "password", "email", "user"))
+
+
+    def save_to_sql_db(self, username, password, email):
+        self._create_products_table()
+        self.database_connector.add_to_table(
+            self._logins_name,
+            [(username, password, email, None)],
+        )
+
+
+    def register(self, username: str, password: str, email: str) -> None:
         """
         This lets the user set up a new account in the app.
         Args:
             username: The username required to use the app.
             password: The password required to use the app.
             email: The email required to register to the app.
-            dirpath: dirpath to the user_base is provided but can be changed for test purposes.
         """
-        cls.check_password(password)
+        self.check_password(password)
+        try:
+            tables = self.database_connector.get_table(self._logins_name)
+            if username in tables["username"]:
+                raise UsernameTakenError(error_base.get("E11").format(username))
 
-        with open(dirpath or LOGIN_DIRPATH, "r") as file:
-            inside = json.load(file)
+            elif email in tables["email"]:
+                raise EmailTakenError(error_base.get("E11").format(email))
 
-        if username in [x["username"] for x in inside["users"]]:
-            raise UsernameTakenError(error_base.get("E11").format(username))
+        except sqlite3.OperationalError:
+            pass
 
-        elif b64encode(email.encode("utf-8")).decode("utf-8") in [x["email"] for x in inside["users"]]:
-            raise EmailTakenError(error_base.get("E11").format(email))
+        finally:
+            self.save_to_sql_db(username, password, email)
 
-        inside["users"].append(
-            {
-                "username": username,
-                "password": b64encode(password.encode("utf-8")).decode("utf-8"),
-                "email": b64encode(email.encode("utf-8")).decode("utf-8"),
-            }
-        )
-        with open(dirpath or LOGIN_DIRPATH, "w") as file:
-            json.dump(inside, file, indent=2)
 
     def login(self, username, password, dirpath: Path = None):
-        with open(dirpath or LOGIN_DIRPATH, "r") as file:
-            inside = json.load(file)
+        tables = self.database_connector.get_table(self._logins_name)
+        print(tables)
 
-        if (username, password) not in [
-            (x["username"], b64decode(x["password"].encode("utf-8")).decode("utf-8")) for x in inside["users"]
-        ]:
+        if username not in tables["username"] or password not in tables["password"] or tables["username"].index(username) != tables["password"].index(password):
             raise IncorrectLoginInformation(error_base.get("E13"))
 
         self.username = username
@@ -191,20 +199,15 @@ class App:
         self.load_user()
 
     def load_user(self):
-        with open(USER_DIRPATH, "r") as file:
-            inside = json.load(file)
-        user_info = [(x["username"], x["user"]) for x in inside["users"] if self.username == x["username"]]
-        if len(user_info) != 0:
-            self.user = User.from_dict(user_info[0][1])
+        data = self.database_connector.get_record_from_table(self._logins_name, "username", self.username)
+        if data["user"] is not None:
+            self.user = data["user"]
         else:
             logger.warning("User is not created, please create a new user, by calling 'create_user' method.")
 
-    def reload_base(self, user_dict, filepath):
-        with open(filepath or USER_DIRPATH, "r") as file:
-            inside = json.load(file)
-        inside["users"].append({"username": self.username, "user": user_dict})
-        with open(filepath or USER_DIRPATH, "w") as file:
-            json.dump(inside, file, indent=4)
+
+    def reload_base(self, val):
+        self.database_connector.update_record_in_table(table_name=self._logins_name, primary_key_column="username", old_value=self.username, new_value=val)
 
     def create_user(
         self,
@@ -215,15 +218,12 @@ class App:
         weight: int,
         gender: str,
         daily_target: DailyTarget,
-        filepath=None,
     ):
         user = User(
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
-        user_dict = user.to_dict()
-
-        self.reload_base(user_dict, filepath or USER_DIRPATH)
+        self.reload_base(user)
         self.user = user
 
     def new_daily_target(
@@ -243,8 +243,3 @@ class App:
                 logger.warning("Not enough data given, please give: kcal, protein, carbs, fats or activity.")
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
-
-
-app = App()
-target = DailyTarget()
-app.login("test1", "1234")
