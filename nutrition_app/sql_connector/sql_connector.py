@@ -15,8 +15,7 @@ class SQLConnector:
     """
 
     def __init__(self, database_path: str | Path):
-        self._connection = sqlite3.connect(str(database_path))
-        self._cursor = self._connection.cursor()
+        self._database_path = str(database_path)
 
     def create_table(self, table_name: str, fields: Sequence[str]) -> None:
         """
@@ -30,10 +29,13 @@ class SQLConnector:
             None
         """
         # let first element be the primary key by default
+        _connection = sqlite3.connect(str(self._database_path))
+        _cursor = _connection.cursor()
         fields = list(fields)
         fields[0] = f"{fields[0]} PRIMARY KEY"
         query = f"CREATE TABLE IF NOT EXISTS {table_name}({', '.join(fields)})"
-        self._cursor.execute(query)
+        _cursor.execute(query)
+        _connection.close()
 
     def remove_table(self, table_name: str) -> None:
         """

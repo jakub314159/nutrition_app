@@ -98,9 +98,10 @@ class App:
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
-
     def delete_account(self, table_name, primary_column, main_value) -> None:
+        # TODO: type hints
         self.database_connector.remove_from_table(table_name, primary_column, main_value)
+        self.database_connector.close()
 
     @staticmethod
     def check_password(password: str) -> str:
@@ -128,6 +129,7 @@ class App:
     def automatic_password(
         upper_letters: int = None, lower_letters: int = None, numbers: int = None, special_char: int = None
     ):
+        # TODO: Handle automatic pass generator with no values given
         upp = [x.title() for x in choices(LETTERS, k=upper_letters)]
         low = choices(LETTERS, k=lower_letters)
         num = choices(CIFERS, k=numbers)
@@ -141,11 +143,9 @@ class App:
 
         return "".join(sum_list)
 
-
     def _check_products_table(self) -> bool:
         tables = self.database_connector.get_existing_tables()
         return bool(tables) and self._logins_name in tables
-
 
     def _delete_products_table(self, name):
         self.database_connector.remove_table(name)
@@ -154,14 +154,12 @@ class App:
         if not self._check_products_table():
             self.database_connector.create_table(self._logins_name, ("username", "password", "email", "user"))
 
-
     def save_to_sql_db(self, username, password, email):
         self._create_products_table()
         self.database_connector.add_to_table(
             self._logins_name,
             [(username, password, email, None)],
         )
-
 
     def register(self, username: str, password: str, email: str) -> None:
         """
@@ -186,8 +184,8 @@ class App:
         finally:
             self.save_to_sql_db(username, password, email)
 
-
     def login(self, username, password, dirpath: Path = None):
+        # TODO: remove dirpath
         tables = self.database_connector.get_table(self._logins_name)
         print(tables)
 
@@ -200,11 +198,11 @@ class App:
 
     def load_user(self):
         data = self.database_connector.get_record_from_table(self._logins_name, "username", self.username)
+        # TODO: create new table "users" and read User instance from it
         if data["user"] is not None:
             self.user = data["user"]
         else:
             logger.warning("User is not created, please create a new user, by calling 'create_user' method.")
-
 
     def reload_base(self, val):
         self.database_connector.update_record_in_table(table_name=self._logins_name, primary_key_column="username", old_value=self.username, new_value=val)
