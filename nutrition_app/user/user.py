@@ -120,22 +120,31 @@ class User:
         connector = SQLConnector(database_path=cls.PRODUCTS_DIR)
         tables = connector.get_existing_tables()
         return bool(tables) and cls.TABLE_NAME in tables
-    
-    
+
     def _create_products_table(self):
         if not self._check_products_table():
             connector = SQLConnector(database_path=self.PRODUCTS_DIR)
             connector.create_table(
                 self.TABLE_NAME, ("name", "surname", "age", "height", "weight", "gender", "daily_target", "meal_order")
             )
-    
-    
+
     def save_to_sql_db(self):
         self._create_products_table()
         connector = SQLConnector(database_path=self.PRODUCTS_DIR)
         connector.add_to_table(
             self.TABLE_NAME,
-            [(self.name, self.surname, self.age, self.height, self.weight, self.gender, self.daily_target, self.meal_order)],
+            [
+                (
+                    self.name,
+                    self.surname,
+                    self.age,
+                    self.height,
+                    self.weight,
+                    self.gender,
+                    self.daily_target,
+                    self.meal_order,
+                )
+            ],
         )
 
     @classmethod
@@ -143,4 +152,3 @@ class User:
         connector = SQLConnector(database_path=database_path)
         record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
         return record
-

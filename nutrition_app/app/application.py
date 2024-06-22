@@ -188,7 +188,11 @@ class App:
         tables = self.database_connector.get_table(self._logins_name)
         print(tables)
 
-        if username not in tables["username"] or password not in tables["password"] or tables["username"].index(username) != tables["password"].index(password):
+        if (
+            username not in tables["username"]
+            or password not in tables["password"]
+            or tables["username"].index(username) != tables["password"].index(password)
+        ):
             raise IncorrectLoginInformation(error_base.get("E13"))
 
         self.username = username
@@ -205,7 +209,13 @@ class App:
         pass
 
     def update_record(self, key_name, new_val):
-        self.database_connector.update_record_in_table(table_name=self._logins_name, primary_key_name="username", primary_key_val=self.username, key_name=key_name, new_value=new_val)
+        self.database_connector.update_record_in_table(
+            table_name=self._logins_name,
+            primary_key_name="username",
+            primary_key_val=self.username,
+            key_name=key_name,
+            new_value=new_val,
+        )
 
     def create_user(
         self,

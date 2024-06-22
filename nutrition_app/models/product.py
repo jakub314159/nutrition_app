@@ -122,15 +122,11 @@ class Product:
     #     connector = SQLConnector(database_path=self.PRODUCTS_DIR)
     #     connector.add_to_table(self.TABLE_NAME, [(self.id_, self.name, self.protein, self.carbs, self.fats, self.kcal, self.salt, self.sugars, self.fiber)])
 
-
-
-
     # @classmethod
     # def from_sql_db(cls, id_: int) -> dict:
     #     connector = SQLConnector(database_path=database_path)
     #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
     #     return record
-
 
 
 class EatableProduct:

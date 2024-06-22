@@ -87,12 +87,9 @@ class SQLConnector:
         cursor.executemany(query, records)
         connection.commit()
 
-
         connection.close()
 
-    def get_record_from_table(
-        self, table_name: str, key_name: str, key_val: Any
-    ) -> dict[str, Any]:
+    def get_record_from_table(self, table_name: str, key_name: str, key_val: Any) -> dict[str, Any]:
         """
         Get record from the chosen table with given primary key.
         if the given key won't be primary returned result will be
@@ -143,7 +140,9 @@ class SQLConnector:
 
         return result_dict
 
-    def update_record_in_table(self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str,  new_value: Any) -> None:
+    def update_record_in_table(
+        self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
+    ) -> None:
         """
         Update a specific value in the chosen table for a given primary key.
 
@@ -181,7 +180,6 @@ class SQLConnector:
         cursor = connection.cursor()
 
         query = f"DELETE FROM {table_name} WHERE {column_name} = ?"
-
 
         cursor.execute(query, (value,))
         connection.commit()

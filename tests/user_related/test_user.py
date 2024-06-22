@@ -6,9 +6,7 @@ from pytest import fixture
 
 @fixture
 def user():
-    user = User(
-        name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male"
-    )
+    user = User(name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male")
     return user
 
 
@@ -21,9 +19,7 @@ class TestUser:
         )
 
     def test_eq_true(self, user):
-        user2 = User(
-            name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male"
-        )
+        user2 = User(name="Jan", surname="Kowalski", weight=70, height=170, age=18, gender="male")
         assert user == user2
 
     def test_eq_false(self, user):

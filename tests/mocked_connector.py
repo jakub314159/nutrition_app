@@ -4,13 +4,14 @@ from nutrition_app.sql_connector.base_connector import BaseConnector
 
 TableType: TypeAlias = dict[str, list]
 
+
 class MockedConnector(BaseConnector):
 
     def __init__(self, **kwargs):
         self.tables: dict[str, TableType] = {}
 
     def create_table(self, table_name: str, fields: Sequence[str]) -> None:
-        self.tables[table_name] = {x:[] for x in fields}
+        self.tables[table_name] = {x: [] for x in fields}
 
     def remove_table(self, table_name: str) -> None:
         self.tables.pop(table_name)
@@ -34,8 +35,8 @@ class MockedConnector(BaseConnector):
         return self.tables[table_name]
 
     def update_record_in_table(
-    self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
-) -> None:
+        self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
+    ) -> None:
         index = self.tables[table_name][primary_key_name].index(primary_key_val)
         self.tables[table_name][key_name][index] = new_value
 

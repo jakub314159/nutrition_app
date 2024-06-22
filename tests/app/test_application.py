@@ -4,7 +4,13 @@ from pytest import fixture, raises
 from base64 import b64encode
 
 
-from nutrition_app.app.application import App, UsernameTakenError, EmailTakenError, WrongMadePasswordError, IncorrectLoginInformation
+from nutrition_app.app.application import (
+    App,
+    UsernameTakenError,
+    EmailTakenError,
+    WrongMadePasswordError,
+    IncorrectLoginInformation,
+)
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.sql_connector import SQLConnector
 from tests.mocked_connector import MockedConnector
@@ -14,6 +20,7 @@ USER_DIRPATH = Path(__file__).parent.parent / "test_db" / "test_user_base.json"
 
 
 LOGIN_SQL_PATH = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_database.db"
+
 
 @fixture()
 def app():
@@ -35,7 +42,6 @@ class TestApp:
         new_val = app.database_connector.get_existing_tables()
 
         assert old_val["username"] == "1" and "1" not in new_val
-
 
     def test_check_password_to_low_char(self, app):
         with raises(expected_exception=WrongMadePasswordError):
@@ -71,7 +77,6 @@ class TestApp:
             app.register("test", "Ab1@cdefgh", "gmail.com")
             app.register("test", "Ab1@cdefgh", "email.com")
 
-
     def test_register_username_taken_error(self, app):
         with raises(expected_exception=EmailTakenError):
             app.database_connector.create_table("logins", ("username", "password", "email"))
@@ -92,15 +97,17 @@ class TestApp:
         sql_dict = app.database_connector.get_table("logins")
         assert sql_dict["email"][0] == "no" and sql_dict["password"][0] == "tak" and sql_dict["username"][0] == "nie"
 
-
     def test_register(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
 
         sql_dict = app.database_connector.get_table("logins")
 
-        assert sql_dict["username"][0] == "test" and sql_dict["password"][0] == "Ab1@cdefgh" and sql_dict["email"][0] == "gmail.com"
-
+        assert (
+            sql_dict["username"][0] == "test"
+            and sql_dict["password"][0] == "Ab1@cdefgh"
+            and sql_dict["email"][0] == "gmail.com"
+        )
 
     def test_login_incorrect_username(self, app):
         with raises(expected_exception=IncorrectLoginInformation):
@@ -113,7 +120,6 @@ class TestApp:
             app.database_connector.create_table("logins", ("username", "password", "email"))
             app.register("test", "Ab1@cdefgh", "gmail.com")
             app.login("test", "Ab1@cdefg")
-
 
     def test_login(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email"))
@@ -135,7 +141,12 @@ class TestApp:
         app.login("test", "Ab1@cdefgh")
         app.update_record(key_name="password", new_val=1)
 
-        assert app.database_connector.get_record_from_table(table_name="logins", key_name= "username", key_val= "test")["password"] == 1
+        assert (
+            app.database_connector.get_record_from_table(table_name="logins", key_name="username", key_val="test")[
+                "password"
+            ]
+            == 1
+        )
 
     # def test_create_user(self, app):
     #     app.database_connector.create_table("logins", ("username", "password", "email"))

@@ -48,6 +48,3 @@ class TestProduct:
 
     def test_to_dict(self, product):
         assert product.to_dict() == product.to_dict()
-
-
-

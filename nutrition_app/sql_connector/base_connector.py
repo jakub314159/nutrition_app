@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Sequence, Any
 
 
-
 class BaseConnector(ABC):
 
     @abstractmethod
@@ -86,8 +85,8 @@ class BaseConnector(ABC):
 
     @abstractmethod
     def update_record_in_table(
-    self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
-) -> None:
+        self, table_name: str, primary_key_name: str, primary_key_val: Any, key_name: str, new_value: Any
+    ) -> None:
         """
         Update a specific value in the chosen table for a given primary key.
 

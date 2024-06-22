@@ -3,6 +3,7 @@ from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.error_station import error_base
 from nutrition_app.sql_connector import SQLConnector
 
+
 class Meal:
     """
     Meal is a class, that hold a list o products (class EatableProduct or FastProduct) and it's variables (for example: name, protein, carbs, fats and kcal).
@@ -88,5 +89,3 @@ class Meal:
 
     def to_dict(self):
         return self.__dict__
-
-

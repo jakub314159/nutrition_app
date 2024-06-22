@@ -133,4 +133,3 @@ class Day:
         full = round(local_progress / 5)
         less = 20 - full
         return [int(full) * "▰" + int(less) * "▱", f"{self.progres[variable]}%"]
-
