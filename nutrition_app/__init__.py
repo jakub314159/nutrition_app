@@ -2,8 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-products_dir = Path(__file__).parent / "products_db"
-
+database_path = Path(__file__).parent / "nutrition_app_database.db"
 
 logger = logging.getLogger("nutrition_app")
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))

@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
-from nutrition_app import products_dir
+from nutrition_app import database_path
 from nutrition_app.error_station import error_base
+from nutrition_app.sql_connector import SQLConnector
 
 
 class Product:
@@ -23,7 +24,8 @@ class Product:
             fiber: the amount of fiber in the product.
     """
 
-    PRODUCTS_DIR = products_dir
+    PRODUCTS_DIR = database_path
+    TABLE_NAME = "products"
 
     def __init__(
         self,
@@ -101,71 +103,30 @@ class Product:
         Returns:
             This returns a dict from the command vars, that is modified in a way that it could be read by a json.
         """
-        vars_dict = vars(self)
+        return vars(self)
 
-        new_dict = {}
-        for key, val in vars_dict.items():
-            if key.startswith("_"):
-                key = key[1:]
-            new_dict[key] = val
+    # @classmethod
+    # def _check_products_table(cls) -> bool:
+    #     connector = SQLConnector(database_path=cls.PRODUCTS_DIR)
+    #     tables = connector.get_existing_tables()
+    #     return bool(tables) and cls.TABLE_NAME in tables
+    #
+    # def _create_products_table(self):
+    #     if not self._check_products_table():
+    #         connector = SQLConnector(database_path=self.PRODUCTS_DIR)
+    #         connector.create_table(self.TABLE_NAME, ("id", "name", "protein", "carbs", "fats", "kcal", "salt", "sugars", "fiber"))
+    #
+    #
+    # def save_to_sql_db(self):
+    #     self._create_products_table()
+    #     connector = SQLConnector(database_path=self.PRODUCTS_DIR)
+    #     connector.add_to_table(self.TABLE_NAME, [(self.id_, self.name, self.protein, self.carbs, self.fats, self.kcal, self.salt, self.sugars, self.fiber)])
 
-        return new_dict
-
-    def to_json_file(self, path: Path = None):
-        """
-        This adds the product to the product_db, and errors out if the product is aleady saved.
-        """
-        inside = self.to_dict()
-        name = f"{self.id_}.json"
-
-        path = path or self.PRODUCTS_DIR / name
-
-        if path.exists():
-            raise FileExistsError(error_base.get("E4"))
-
-        with open(path, "w") as file:
-            json.dump(inside, file)
-
-    @classmethod
-    def from_dict(cls, input_dict: dict) -> "Product":
-        """
-        This reads through the dict and creates an object from the class product with the dict variables.
-
-        Args:
-            input_dict: dict that will be readen through, and from which the new Product will be created.
-        Returns:
-            An object class Product, that holds the values from the input_dict.
-        """
-
-        name = input_dict.get("name")
-        id_ = input_dict.get("id_")
-        protein = input_dict.get("protein")
-        carbs = input_dict.get("carbs")
-        fats = input_dict.get("fats")
-        kcal = input_dict.get("kcal")
-
-        return cls(name=name, id_=id_, protein=protein, carbs=carbs, fats=fats, kcal=kcal)
-
-    @classmethod
-    def from_json_file(cls, id_: int) -> "Product":
-        """
-        This reads the json filed stored inside products_db and creates a class holding the same variables as the json file.
-
-        Args:
-            id_: this is the idintification number of the product.
-
-        Returns:
-            object class Product, with the same id as given.
-        """
-        path = cls.PRODUCTS_DIR / f"{id_}.json"
-        if path.exists():
-            with open(path, "r") as file:
-                inside = json.load(file)
-            new_object = cls.from_dict(inside)
-        else:
-            raise FileNotFoundError(error_base.get("E3").format(id_))
-
-        return new_object
+    # @classmethod
+    # def from_sql_db(cls, id_: int) -> dict:
+    #     connector = SQLConnector(database_path=database_path)
+    #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
+    #     return record
 
 
 class EatableProduct:
@@ -206,6 +167,3 @@ class EatableProduct:
     @property
     def kcal(self) -> float:
         return self.product.kcal / 100 * self.mass
-
-    def to_dict(self):
-        return self.__dict__

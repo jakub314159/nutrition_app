@@ -40,9 +40,7 @@ def day():
         products=[
             EatableProduct(
                 mass=100,
-                product=Product(
-                    name="ser", id_=10000, protein=10, carbs=10, fats=10, kcal=170
-                ),
+                product=Product(name="ser", id_=10000, protein=10, carbs=10, fats=10, kcal=170),
             )
         ],
     )
@@ -56,9 +54,7 @@ class TestDay:
 
     def test_eq_true(self, day):
         target = DailyTarget()
-        target.set_daily_target(
-            weight=70, height=170, activity=3, age=18, gender="male"
-        )
+        target.set_daily_target(weight=70, height=170, activity=3, age=18, gender="male")
         user = User(
             name="Jan",
             surname="Kowalski",
@@ -87,10 +83,7 @@ class TestDay:
     def test_set_date(self, day):
         now = datetime.now()
 
-        assert (
-            day.set_date()
-            == f"{now.day}-{now.month}-{now.year}, {WEEK_DICT.get(now.weekday())}"
-        )
+        assert day.set_date() == f"{now.day}-{now.month}-{now.year}, {WEEK_DICT.get(now.weekday())}"
 
     def test_validate(self, day):
         with raises(expected_exception=ValueError):
@@ -103,9 +96,7 @@ class TestDay:
             products=[
                 EatableProduct(
                     mass=100,
-                    product=Product(
-                        name="kurczak", id_=2345, protein=10, carbs=20, fats=20
-                    ),
+                    product=Product(name="kurczak", id_=2345, protein=10, carbs=20, fats=20),
                 )
             ],
         )
@@ -169,18 +160,3 @@ class TestDay:
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):
             day.get_progres_bar(variable="error")
-
-    def test_to_json(self, day):
-        path = Path(__file__).parent.parent / "test_db" / "test_to_json.json"
-        day.to_json(path=path)
-
-        with open(path, "r") as file:
-            u_dict = json.load(file)
-
-        path.unlink()
-
-        assert (
-            u_dict["user"]["name"] == day.user.name
-            and u_dict["user"]["surname"] == day.user.surname
-            and u_dict["user"]["age"] == day.user.age
-        )

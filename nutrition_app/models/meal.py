@@ -1,6 +1,7 @@
 from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.error_station import error_base
+from nutrition_app.sql_connector import SQLConnector
 
 
 class Meal:

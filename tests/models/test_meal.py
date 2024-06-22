@@ -7,9 +7,7 @@ from nutrition_app.models.fast_product import FastProduct
 
 @fixture
 def meal():
-    product1 = EatableProduct(
-        mass=100, product=Product(name="ser", id_=54374, protein=10, carbs=20, fats=20)
-    )
+    product1 = EatableProduct(mass=100, product=Product(name="ser", id_=54374, protein=10, carbs=20, fats=20))
     product2 = FastProduct(name="ser", kcal=100.9, protein=10, carbs=20, fats=20)
     meal = Meal(products=[product1, product2])
     return meal
@@ -57,3 +55,6 @@ class TestMeal:
         ov_fats = sum([x.fats for x in meal.products])
 
         assert ov_fats == meal.count_ov_fats()
+
+    def test_to_dict(self, meal):
+        assert meal.to_dict() == meal.__dict__

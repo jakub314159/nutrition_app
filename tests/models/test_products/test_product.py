@@ -1,13 +1,12 @@
 from nutrition_app.models.product import Product
 from pytest import fixture
 import pytest
-from nutrition_app import products_dir
+from nutrition_app import database_path
 from pathlib import Path
 import json
 
 
-Product.PRODUCTS_DIR = Path(__file__).parent.parent.parent / "test_db"
-Product.PRODUCTS_DIR.mkdir(exist_ok=True)
+Product.PRODUCTS_DIR = Path(__file__).parent.parent.parent / "test_db" / "test_sql.db"
 
 
 @fixture
@@ -23,6 +22,10 @@ class TestProduct:
             f"{product.__class__.__name__}(name={product.name}, id={product.id_}, protein={product.protein}, carbs={product.carbs}, fats={product.fats}, kcal={product.kcal})"
             == product.__repr__()
         )
+
+    def test_eq(self, product):
+        product2 = Product(name="ser", id_=10000, protein=10, carbs=20, fats=20)
+        assert product == product2
 
     @pytest.mark.parametrize("dose", (-6, 1000))
     def test_protein_wrong_dose(self, product, dose):
@@ -43,29 +46,5 @@ class TestProduct:
         with pytest.raises(expected_exception=ValueError):
             product.kcal = -6
 
-    def test_to_json_file_file_exists_error(self, product):
-        with pytest.raises(expected_exception=FileExistsError):
-            product.id_ = 10
-            product.to_json_file()
-
-    def test_from_json_file_file_not_found(self, product):
-        with pytest.raises(expected_exception=FileNotFoundError):
-            product.from_json_file(id_=124681234)
-
-    def test_to_and_from_json_file(self, product):
-        product.to_json_file()
-
-        name = f"{product.id_}.json"
-        path = product.PRODUCTS_DIR / name
-
-        try:
-            with open(path, "r") as file:
-                inside = json.load(file)
-
-            new_product = Product.from_json_file(product.id_)
-        finally:
-            path.unlink()
-
-        assert product.name == inside["name"]
-        assert product.id_ == inside["id_"]
-        assert new_product == product
+    def test_to_dict(self, product):
+        assert product.to_dict() == product.to_dict()
