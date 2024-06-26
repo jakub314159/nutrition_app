@@ -37,6 +37,10 @@ class Day:
 
     @staticmethod
     def set_date():
+        """
+        This lets the user to set the date in wchih the user eats.
+        Returns: str with calender date and the weekday.
+        """
         now = datetime.now()
         week_dict = {
             0: "Monday",
@@ -49,7 +53,7 @@ class Day:
         }
         return f"{now.day}-{now.month}-{now.year}, {week_dict.get(now.weekday())}"
 
-    def _validate(self, meal_index) -> None:
+    def _validate(self, meal_index: int) -> None:
         """
         This checks if meal_index is in range of the users meal order.
         Args:

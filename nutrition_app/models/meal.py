@@ -88,4 +88,7 @@ class Meal:
         return ov_fats
 
     def to_dict(self):
+        """
+        Returns: the meal dict.
+        """
         return self.__dict__

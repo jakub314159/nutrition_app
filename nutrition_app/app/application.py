@@ -1,9 +1,10 @@
 import json
+import random
 import sqlite3
 from base64 import b64encode, b64decode
 from pathlib import Path
 from random import choices, shuffle
-from typing import Literal
+from typing import Literal, Any, Sequence
 
 from nutrition_app.error_station import error_base
 from nutrition_app import logger, database_path
@@ -89,6 +90,7 @@ class App:
 
     def __init__(self, **kwargs):
         self._logins_name = "logins"
+        self._users_name = "users"
         self.username = None
         self.password = None
         self.email = None
@@ -98,14 +100,35 @@ class App:
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
-    def delete_account(self, table_name, primary_column, main_value) -> None:
-        # TODO: type hints
-        self.database_connector.remove_from_table(table_name, primary_column, main_value)
+    def delete_account(self, table_name: str, primary_column: str, primary_value: Any) -> None:
+        """
+        Args:
+            table_name: the name of the table from wchih you delete an account.
+            primary_column: the main column name.
+            primary_value: the main column value.
+        """
+        self.database_connector.remove_from_table(table_name, primary_column, primary_value)
 
     @staticmethod
     def check_password(password: str) -> str:
-        if len(password) < 10 or len(password) > 20:
-            raise WrongMadePasswordError("Password must have from 10 to 20 characters.")
+        """
+        Args:
+            password: The password that is going to be checked.
+
+        Raises:
+            WrongMadePasswordError:
+                password isn't from 8 - 20 characters.
+                doesn't have small letters.
+                doesn't have big letters.
+                doesn't have numbers.
+                doesn't have special characters.
+                doesn't have letters.
+
+        Returns:
+            The password if it's correct.
+        """
+        if len(password) < 8 or len(password) > 20:
+            raise WrongMadePasswordError("Password must have from 8 to 20 characters.")
 
         if password.isupper():
             raise WrongMadePasswordError("must have small leters")
@@ -125,90 +148,54 @@ class App:
         return password
 
     @staticmethod
-    def automatic_password(
-        upper_letters: int = None, lower_letters: int = None, numbers: int = None, special_char: int = None
-    ):
-        # TODO: Handle automatic pass generator with no values given
-        upp = [x.title() for x in choices(LETTERS, k=upper_letters)]
-        low = choices(LETTERS, k=lower_letters)
-        num = choices(CIFERS, k=numbers)
-        char = choices(SPECIAL_CHARS, k=special_char)
+    def automatic_password():
+        """
+        Returns:
+            Password if the user doesn't provide one.
+        """
+
+        upp = [x.title() for x in choices(LETTERS, k=random.randint(2, 5))]
+        low = choices(LETTERS, k=random.randint(2, 5))
+        num = choices(CIFERS, k=random.randint(2, 5))
+        char = choices(SPECIAL_CHARS, k=random.randint(2, 5))
 
         sum_list = upp + low + num + char
-
-        if len(sum_list) < 10 or len(sum_list) > 20:
-            raise WrongMadePasswordError("Password must have from 10 to 20 characters.")
         shuffle(x=sum_list)
 
         return "".join(sum_list)
 
-    def _check_products_table(self) -> bool:
-        tables = self.database_connector.get_existing_tables()
-        return bool(tables) and self._logins_name in tables
+    def _check_table(self, table_name: str) -> bool:
+        """
+        This checks if the products table exists.
 
-    def _delete_products_table(self, name):
+        Returns:
+            a True or False statement if the products table exists.
+        """
+        tables = self.database_connector.get_existing_tables()
+        return bool(tables) and table_name in tables
+
+    def _delete_table(self, name: str):
+        """
+        This deletes the products table.
+        Args:
+            name: The name of the table.
+        """
         self.database_connector.remove_table(name)
 
-    def _create_products_table(self):
-        if not self._check_products_table():
-            self.database_connector.create_table(self._logins_name, ("username", "password", "email", "user"))
-
-    def save_to_sql_db(self, username, password, email):
-        self._create_products_table()
-        self.database_connector.add_to_table(
-            self._logins_name,
-            [(username, password, email, None)],
-        )
-
-    def register(self, username: str, password: str, email: str) -> None:
+    def _create_table(self, table_name: str, fields: Sequence[str]):
         """
-        This lets the user set up a new account in the app.
+        This creates a products table if the table doesn't exist.
+        """
+        if not self._check_table(table_name):
+            self.database_connector.create_table(table_name, fields)
+
+    def _update_record(self, key_name: str, new_val: Any):
+        """
+        This updates record in the database.
         Args:
-            username: The username required to use the app.
-            password: The password required to use the app.
-            email: The email required to register to the app.
+            key_name: the column in wchich the value is updated.
+            new_val: new value in the column.
         """
-        self.check_password(password)
-        try:
-            tables = self.database_connector.get_table(self._logins_name)
-            if username in tables["username"]:
-                raise UsernameTakenError(error_base.get("E11").format(username))
-
-            elif email in tables["email"]:
-                raise EmailTakenError(error_base.get("E11").format(email))
-
-        except sqlite3.OperationalError:
-            pass
-
-        finally:
-            self.save_to_sql_db(username, password, email)
-
-    def login(self, username, password, dirpath: Path = None):
-        # TODO: remove dirpath
-        tables = self.database_connector.get_table(self._logins_name)
-        print(tables)
-
-        if (
-            username not in tables["username"]
-            or password not in tables["password"]
-            or tables["username"].index(username) != tables["password"].index(password)
-        ):
-            raise IncorrectLoginInformation(error_base.get("E13"))
-
-        self.username = username
-        self.password = password
-        self.load_user()
-
-    def load_user(self):
-        # data = self.database_connector.get_record_from_table(self._logins_name, "username", self.username)
-        # # TODO: create new table "users" and read User instance from it
-        # if data["user"] is not None:
-        #     self.user = data["user"]
-        # else:
-        #     logger.warning("User is not created, please create a new user, by calling 'create_user' method.")
-        pass
-
-    def update_record(self, key_name, new_val):
         self.database_connector.update_record_in_table(
             table_name=self._logins_name,
             primary_key_name="username",
@@ -216,6 +203,117 @@ class App:
             key_name=key_name,
             new_value=new_val,
         )
+
+    def save_to_sql_db(self, username: str, password: str, email: str):
+        """
+        This saves user information to the database.
+        Args:
+            username: The username required to use the app.
+            password: Users password.
+            email: Users email.
+        """
+        self._create_table(self._logins_name, ("username", "password", "email"))
+        self.database_connector.add_to_table(
+            self._logins_name,
+            [
+                (
+                    username,
+                    b64encode(password.encode("utf-8")).decode("utf-8"),
+                    b64encode(email.encode("utf-8")).decode("utf-8"),
+                    None,
+                )
+            ],
+        )
+
+    def register(self, username: str, password: str, email: str) -> None:
+        """
+        This lets the user set up a new account in the app.
+        Args:
+            username: The username required to use the app.
+            password: Users password.
+            email: Users email.
+        """
+        self.check_password(password)
+
+        tables = self.database_connector.get_table(self._logins_name)
+        if username in tables["username"]:
+            raise UsernameTakenError(error_base.get("E11").format(username))
+
+        elif b64encode(email.encode("utf-8")).decode("utf-8") in tables["email"]:
+            raise EmailTakenError(error_base.get("E11").format(email))
+
+        self.save_to_sql_db(username, password, email)
+
+    def login(self, username: str, password: str):
+        """
+        This lets the user log to the application
+        Args:
+            username: The username required to use the app.
+            password: Users password.
+        Raises:
+            IncorrectLoginInformation:
+                username or password is wrong.
+        """
+        tables = self.database_connector.get_table(self._logins_name)
+        print(tables)
+
+        if (
+            username not in tables["username"]
+            or b64encode(password.encode("utf-8")).decode("utf-8") not in tables["password"]
+            or tables["username"].index(username)
+            != tables["password"].index(b64encode(password.encode("utf-8")).decode("utf-8"))
+        ):
+            raise IncorrectLoginInformation(error_base.get("E13"))
+
+        self.username = username
+        self.password = password
+        self.load_user()
+
+    def load_user(self, user: "User" = None):
+        """
+        This lets app user to load their user profile.
+        Args:
+            user: the user needed to use the app.
+        Warnings:
+            if user hasn't been created.
+        """
+        self._create_table(
+            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target")
+        )
+        if self.user is not None:
+            self.database_connector.add_to_table(
+                self._users_name,
+                [
+                    (
+                        self.username,
+                        self.user.name,
+                        self.user.surname,
+                        self.user.age,
+                        self.user.height,
+                        self.user.weight,
+                        self.user.gender,
+                        self.user.daily_target,
+                    )
+                ],
+            )
+        elif self.user is None and user is not None:
+            self.database_connector.add_to_table(
+                self._users_name,
+                [
+                    (
+                        self.username,
+                        user.name,
+                        user.surname,
+                        user.age,
+                        user.height,
+                        user.weight,
+                        user.gender,
+                        user.daily_target,
+                    )
+                ],
+            )
+        else:
+            logger.info(msg="insufficient infromation, please create a new user.")
 
     def create_user(
         self,
@@ -225,23 +323,36 @@ class App:
         height: int,
         weight: int,
         gender: str,
-        daily_target: DailyTarget,
+        daily_target: DailyTarget = None,
     ):
         user = User(
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
-        self.update_record(user)
+        self.load_user(user)
         self.user = user
 
-    def new_daily_target(
+    def create_daily_target(
         self,
         kcal: float | None = None,
         protein: float | None = None,
         carbs: float | None = None,
         fats: float | None = None,
-        activity: Literal["1", "2", "3", "4", "5"] | None = None,
+        activity: Literal[1, 2, 3, 4, 5] | None = None,
     ):
+        """
+        This lets the user create a new daily target.
+        Args:
+            kcal: kcal required to create a table.
+            protein: protein required to create a table.
+            carbs: carbs required to create a table.
+            fats: kcal required to create a table.
+            activity: kcal required to set the table.
+
+        Warnings:
+            if not enough data is given.
+
+        """
         try:
             if kcal and protein and carbs and fats:
                 self.user.create_daily_target(kcal, protein, carbs, fats)

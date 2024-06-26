@@ -13,7 +13,7 @@ class Product:
     Attributes:
         PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
         name: the name of the product.
-        id: id of the product.
+        id_: id of the product.
         protein: the amount of protein in the product.
         carbs: the amount of carbs in the product.
         fats: the amount of fats in the product.
@@ -58,7 +58,7 @@ class Product:
         return self._protein
 
     @protein.setter
-    def protein(self, value) -> None:
+    def protein(self, value: int) -> None:
         if value < 0 or value > 100:
             raise ValueError(error_base.get("E1").format("Protein"))
         self._protein = value
@@ -68,7 +68,7 @@ class Product:
         return self._carbs
 
     @carbs.setter
-    def carbs(self, value) -> None:
+    def carbs(self, value: int) -> None:
         if value < 0 or value > 100:
             raise ValueError(error_base.get("E1").format("Carbs"))
         self._carbs = value
@@ -78,7 +78,7 @@ class Product:
         return self._fats
 
     @fats.setter
-    def fats(self, value) -> None:
+    def fats(self, value: int) -> None:
         if value < 0 or value > 100:
             raise ValueError(error_base.get("E1").format("Fats"))
         self._fats = value
@@ -88,7 +88,7 @@ class Product:
         return self._kcal
 
     @kcal.setter
-    def kcal(self, value) -> None:
+    def kcal(self, value: int) -> None:
         if value is None:
             value = self.protein * 4 + self.carbs * 4 + self.fats * 9
         if value <= 0:

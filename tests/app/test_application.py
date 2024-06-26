@@ -71,31 +71,59 @@ class TestApp:
         with raises(expected_exception=WrongMadePasswordError):
             app.check_password("1234^$&$%23^$")
 
+    def test_automatic_password(self, app):
+        password = app.automatic_password()
+        app.check_password(password)
+
+    def test_check_table(self, app):
+        val = app._check_table(app._logins_name)
+        assert val == False
+
+    def test_delete_table(self, app):
+        app._logins_name = "test"
+        app.database_connector.create_table("test", (1, 2, 3))
+        app._delete_table("test")
+
+        assert app._check_table("test") == False
+
+    def test_create_products_table(self, app):
+        app._create_table(app._logins_name, ("1", "2", "3"))
+        val = app._check_table(app._logins_name)
+        assert val == True
+
+    def test_update_record(self, app):
+        app.database_connector.create_table("logins", ("username", "password", "email"))
+        app.register("test", "Ab1@cdefgh", "gmail.com")
+        app.login("test", "Ab1@cdefgh")
+        app._update_record(key_name="password", new_val=1)
+    
+        assert (
+            app.database_connector.get_record_from_table(table_name="logins", key_name="username", key_val="test")[
+                "password"
+            ]
+            == 1
+        )
+
+    def test_save_to_sql_db(self, app):
+        app.save_to_sql_db("nie", "tak", "no")
+        sql_dict = app.database_connector.get_table("logins")
+        assert (
+            sql_dict["email"][0] == b64encode("no".encode("utf-8")).decode("utf-8")
+            and sql_dict["password"][0] == b64encode("tak".encode("utf-8")).decode("utf-8")
+            and sql_dict["username"][0] == "nie"
+        )
+
     def test_register_username_taken_error(self, app):
         with raises(expected_exception=UsernameTakenError):
             app.database_connector.create_table("logins", ("username", "password", "email"))
             app.register("test", "Ab1@cdefgh", "gmail.com")
             app.register("test", "Ab1@cdefgh", "email.com")
 
-    def test_register_username_taken_error(self, app):
+    def test_register_email_taken_error(self, app):
         with raises(expected_exception=EmailTakenError):
             app.database_connector.create_table("logins", ("username", "password", "email"))
             app.register("test", "Ab1@cdefgh", "gmail.com")
             app.register("user", "Ab1@cdefgh", "gmail.com")
-
-    def test_check_products_table(self, app):
-        val = app._check_products_table()
-        assert val == False
-
-    def test_create_products_table(self, app):
-        app._create_products_table()
-        val = app._check_products_table()
-        assert val == True
-
-    def test_save_to_sql_db(self, app):
-        app.save_to_sql_db("nie", "tak", "no")
-        sql_dict = app.database_connector.get_table("logins")
-        assert sql_dict["email"][0] == "no" and sql_dict["password"][0] == "tak" and sql_dict["username"][0] == "nie"
 
     def test_register(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email"))
@@ -105,8 +133,8 @@ class TestApp:
 
         assert (
             sql_dict["username"][0] == "test"
-            and sql_dict["password"][0] == "Ab1@cdefgh"
-            and sql_dict["email"][0] == "gmail.com"
+            and sql_dict["password"][0] == b64encode("Ab1@cdefgh".encode("utf-8")).decode("utf-8")
+            and sql_dict["email"][0] == b64encode("gmail.com".encode("utf-8")).decode("utf-8")
         )
 
     def test_login_incorrect_username(self, app):
@@ -128,30 +156,34 @@ class TestApp:
 
         assert app.username == "test"
 
-    # def test_load_user(self, app):
-    #     app.database_connector.create_table("logins", ("username", "password", "email"))
-    #     app.database_connector.add_to_table("logins", ("username", "password", "email", "user"))
-    #     app.load_user()
-    #
-    #     assert app.user == "user"
-
-    def test_reload_base(self, app):
+    def test_create_user(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
+        app.create_user("test", "test", 16, 2, 3, "male")
         app.login("test", "Ab1@cdefgh")
-        app.update_record(key_name="password", new_val=1)
 
-        assert (
-            app.database_connector.get_record_from_table(table_name="logins", key_name="username", key_val="test")[
-                "password"
-            ]
-            == 1
-        )
+        record = app.database_connector.get_record_from_table(app._users_name, "username", "test")
+        assert record["name"] == "test" and record["age"] == 16 and record["height"] == 200 and record["weight"] == 3
 
-    # def test_create_user(self, app):
-    #     app.database_connector.create_table("logins", ("username", "password", "email"))
-    #     app.register("test", "Ab1@cdefgh", "gmail.com")
-    #     app.login("test", "Ab1@cdefgh")
-    #     app.create_user("a", "b", 10, 10, 10, "male", daily_target=DailyTarget())
-    #
-    #     assert app.user.name == "a" and app.user.surname == "b"
+
+    def test_create_new_daily_target(self, app):
+        app.create_user("test", "test", 16, 2, 3, "male")
+        app.create_daily_target(kcal= 340, protein = 20, fats= 20, carbs= 20)
+
+        assert app.user.daily_target.kcal == 340
+
+    def test_set_new_daily_target(self, app):
+        app.create_user("test", "test", 16, 2, 3, "male")
+        app.create_daily_target(activity= 3)
+
+        assert app.user.daily_target.kcal == 1550
+
+    def test_new_daily_target_not_enough_data(self, app):
+        with raises(expected_exception=Warning):
+            app.create_user("test", "test", 16, 2, 3, "male")
+            app.create_daily_target(kcal= 38, protein = 8, fats= 1, carbs= 0)
+
+    def test_create_new_daily_target_not_adding_up_warning(self, app):
+        with raises(expected_exception=Warning):
+            app.create_user("test", "test", 16, 2, 3, "male")
+            app.create_daily_target(kcal= 20, protein = 20, fats= 20, carbs= 20)

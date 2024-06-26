@@ -7,7 +7,7 @@ __all__ = ["SQLConnector"]
 
 class SQLConnector:
     """
-    Class enabling connection with the sql database based on sqlite3
+    Class enabling connection with the sql database based on sqlite3.
 
     Args:
         database_path(str | Path): path to the database.
@@ -22,11 +22,9 @@ class SQLConnector:
         Create table in the database with specified name.
 
         Args:
-            table_name(str): name of the table to be created in the database
-            fields(Sequence[str]): names of the fields in the table
+            table_name(str): name of the table to be created in the database.
+            fields(Sequence[str]): names of the fields in the table.
 
-        Returns:
-            None
         """
         # let first element be the primary key by default
         connection = sqlite3.connect(str(self._database_path))
@@ -42,10 +40,7 @@ class SQLConnector:
         Remove table from the database.
 
         Args:
-            table_name(str): table to be removed from the database
-
-        Returns:
-            None
+            table_name(str): table to be removed from the database.
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -58,7 +53,7 @@ class SQLConnector:
         Get names of existing tables in sqlite database.
 
         Returns:
-            tuple[str, ...]: existing tables
+            tuple[str, ...]: existing tables.
                 Example: ('users', 'products')
         """
         connection = sqlite3.connect(str(self._database_path))
@@ -73,12 +68,9 @@ class SQLConnector:
         Add records to the chosen table.
 
         Args:
-            table_name(str): name of the table to which records will be added
-            records(list[tuple]): records to be added
+            table_name(str): name of the table to which records will be added.
+            records(list[tuple]): records to be added.
                 Example: [(field_1_value, field_2_value, ...), ...]
-
-        Returns:
-            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -96,12 +88,12 @@ class SQLConnector:
         the first occurrence satisfying requirement.
 
         Args:
-            table_name(str): name of the table to get records from
-            key_name(str): name of the key in the table (e.g. id or username)
-            key_val(Any): what value we are looking for
+            table_name(str): name of the table to get records from.
+            key_name(str): name of the key in the table (e.g. id or username).
+            key_val(Any): what value we are looking for.
 
         Returns:
-            dict[str, Any]: output data with chosen record as a dict
+            dict[str, Any]: output data with chosen record as a dict.
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -119,10 +111,10 @@ class SQLConnector:
         Get full table as dict.
 
         Args:
-            table_name(str): name of the table to be returned
+            table_name(str): name of the table to be returned.
 
         Returns:
-            dict[str, list[Any]]: table transformed to a dictionary
+            dict[str, list[Any]]: table transformed to a dictionary.
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -147,14 +139,12 @@ class SQLConnector:
         Update a specific value in the chosen table for a given primary key.
 
         Args:
-            table_name(str): name of the table to update records in
-            primary_key_name(str): name of the primary key column in the table (e.g. id)
-            primary_key_val(Any): the current value of the primary key to be updated
-            key_name(str): the column to be updated
-            new_value(Any): the new value to be set
+            table_name(str): name of the table to update records in.
+            primary_key_name(str): name of the primary key column in the table (e.g. id).
+            primary_key_val(Any): the current value of the primary key to be updated.
+            key_name(str): the column to be updated.
+            new_value(Any): the new value to be set.
 
-        Returns:
-            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -169,12 +159,9 @@ class SQLConnector:
         Remove records from the chosen table based on the given column and value.
 
         Args:
-            table_name (str): name of the table from which records will be removed
-            column_name (str): name of the column to use in the condition
-            value (any): value to match for the condition
-
-        Returns:
-            None
+            table_name (str): name of the table from which records will be removed.
+            column_name (str): name of the column to use in the condition.
+            value (any): value to match for the condition.
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()

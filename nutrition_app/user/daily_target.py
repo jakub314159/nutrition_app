@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Any
 
 from nutrition_app.constants import ACTIVITY_COEFFICIENTS, Gender
 from nutrition_app.error_station import error_base
@@ -105,8 +105,17 @@ class DailyTarget:
         self.fats = self.kcal * 0.30 / 9
 
     def to_dict(self):
+        """
+        Returns: The daily target dict.
+        """
         return self.__dict__
 
     @classmethod
     def from_dict(cls, dict) -> "DailyTarget":
+        """
+        Args:
+            dict: the dict from wchih the new object will be created.
+
+        Returns: a new object from the class DailyTarget.
+        """
         return cls(**dict)
