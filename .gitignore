@@ -4,3 +4,4 @@ venv
 build
 nutrition_app.egg-info
 .coverage
+.env
