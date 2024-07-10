@@ -11,6 +11,7 @@ from nutrition_app import logger, database_path
 from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
+from nutrition_app.email_sender.email_sender import Sender
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "user_base" / "user_base.json"
@@ -91,11 +92,18 @@ class App:
     def __init__(self, **kwargs):
         self._logins_name = "logins"
         self._users_name = "users"
+        self._verification_name = "verification"
         self.username = None
         self.password = None
         self.email = None
         self.user = None
-        self.database_connector = kwargs.pop("database_connector") or SQLConnector(self.DATABASE_DIR)
+        self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
+        logger.info(f"creating database {self.DATABASE_DIR}")
+
+        self._create_table(self._logins_name, ("username", "password", "email", "verified"))
+        self._create_table(
+            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target"))
+        self._create_table(self._verification_name, ("email", "code"))
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
@@ -193,7 +201,7 @@ class App:
         """
         This updates record in the database.
         Args:
-            key_name: the column in wchich the value is updated.
+            key_name: the column in which the value is updated.
             new_val: new value in the column.
         """
         self.database_connector.update_record_in_table(
@@ -204,7 +212,7 @@ class App:
             new_value=new_val,
         )
 
-    def save_to_sql_db(self, username: str, password: str, email: str):
+    def _save_to_logins_db(self, username: str, password: str, email: str):
         """
         This saves user information to the database.
         Args:
@@ -212,7 +220,6 @@ class App:
             password: Users password.
             email: Users email.
         """
-        self._create_table(self._logins_name, ("username", "password", "email"))
         self.database_connector.add_to_table(
             self._logins_name,
             [
@@ -220,7 +227,7 @@ class App:
                     username,
                     b64encode(password.encode("utf-8")).decode("utf-8"),
                     b64encode(email.encode("utf-8")).decode("utf-8"),
-                    None,
+                    False
                 )
             ],
         )
@@ -235,6 +242,7 @@ class App:
         """
         self.check_password(password)
 
+
         tables = self.database_connector.get_table(self._logins_name)
         if username in tables["username"]:
             raise UsernameTakenError(error_base.get("E11").format(username))
@@ -242,7 +250,17 @@ class App:
         elif b64encode(email.encode("utf-8")).decode("utf-8") in tables["email"]:
             raise EmailTakenError(error_base.get("E11").format(email))
 
-        self.save_to_sql_db(username, password, email)
+        verification = Sender(email)
+        code = verification.send_verification_message()
+
+        self.database_connector.add_to_table(self._verification_name, [(email, code)])
+        self._save_to_logins_db(username, password, email)
+
+    def verify(self, username: str, email: str, code: str):
+        if code == self.database_connector.get_record_from_table(self._verification_name, "email", email)["code"]:
+            self.database_connector.update_record_in_table(self._logins_name, "username", username, "verified", True)
+        else:
+            raise ValueError(error_base.get("E14"))
 
     def login(self, username: str, password: str):
         """
@@ -255,7 +273,6 @@ class App:
                 username or password is wrong.
         """
         tables = self.database_connector.get_table(self._logins_name)
-        print(tables)
 
         if (
             username not in tables["username"]
@@ -264,6 +281,10 @@ class App:
             != tables["password"].index(b64encode(password.encode("utf-8")).decode("utf-8"))
         ):
             raise IncorrectLoginInformation(error_base.get("E13"))
+
+        if not self.database_connector.get_record_from_table(self._logins_name, "username", username)["verified"]:
+            logger.warning("You need to verify your email first")
+            return None
 
         self.username = username
         self.password = password
@@ -277,9 +298,7 @@ class App:
         Warnings:
             if user hasn't been created.
         """
-        self._create_table(
-            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target")
-        )
+
         if self.user is not None:
             self.database_connector.add_to_table(
                 self._users_name,
@@ -313,7 +332,7 @@ class App:
                 ],
             )
         else:
-            logger.info(msg="insufficient infromation, please create a new user.")
+            logger.info(msg="insufficient information, please create a new user.")
 
     def create_user(
         self,
@@ -362,3 +381,9 @@ class App:
                 logger.warning("Not enough data given, please give: kcal, protein, carbs, fats or activity.")
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
+
+if __name__ == "__main__":
+    app = App()
+    app.register("user", "pass1234G*", "email")
+    app.login("user", "pass1234G*")
+    app.verify("user", "email", )
