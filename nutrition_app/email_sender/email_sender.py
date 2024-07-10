@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Sender:
     SENDER_EMAIL = "jakub31415926@gmail.com"
     SENDER_PASSWORD = os.getenv("EMAIL_PASSWORD")

@@ -102,7 +102,8 @@ class App:
 
         self._create_table(self._logins_name, ("username", "password", "email", "verified"))
         self._create_table(
-            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target"))
+            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target")
+        )
         self._create_table(self._verification_name, ("email", "code"))
 
     def __repr__(self):
@@ -227,7 +228,7 @@ class App:
                     username,
                     b64encode(password.encode("utf-8")).decode("utf-8"),
                     b64encode(email.encode("utf-8")).decode("utf-8"),
-                    False
+                    False,
                 )
             ],
         )
@@ -241,7 +242,6 @@ class App:
             email: Users email.
         """
         self.check_password(password)
-
 
         tables = self.database_connector.get_table(self._logins_name)
         if username in tables["username"]:
@@ -382,8 +382,12 @@ class App:
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
 
+
 if __name__ == "__main__":
     app = App()
     app.register("user", "pass1234G*", "email")
     app.login("user", "pass1234G*")
-    app.verify("user", "email", )
+    app.verify(
+        "user",
+        "email",
+    )

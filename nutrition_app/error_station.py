@@ -13,5 +13,4 @@ error_base = {
     "E12": "{} is not registered",
     "E13": "Login information is incorrect",
     "E14": "Code isn't the right one. User verification failed.",
-
 }
