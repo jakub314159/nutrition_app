@@ -381,13 +381,3 @@ class App:
                 logger.warning("Not enough data given, please give: kcal, protein, carbs, fats or activity.")
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
-
-
-if __name__ == "__main__":
-    app = App()
-    app.register("user", "pass1234G*", "email")
-    app.login("user", "pass1234G*")
-    app.verify(
-        "user",
-        "email",
-    )

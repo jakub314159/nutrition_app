@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nutrition_app"
-description = "Application to <to be added>"
+description = "Application to count your everyday calories."
 authors = [
     {name = "Jakub Pietrzak"}
 ]
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
-version = "0.0.1b"
+requires-python = ">=3.11,<3.13"
+version = "0.0.2"
 
-dependencies = ["setuptools"]
+dependencies = ["python-dotenv"]
 
 [project.optional-dependencies]
 
