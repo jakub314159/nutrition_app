@@ -8,10 +8,13 @@ from typing import Literal, Any, Sequence
 
 from nutrition_app.error_station import error_base
 from nutrition_app import logger, database_path
+from nutrition_app.models.product import EatableProduct, Product
 from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 from nutrition_app.email_sender.email_sender import Sender
+from nutrition_app.work_flow.eating_day import Day
+from nutrition_app.work_flow.day_manager import DaysManager
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "user_base" / "user_base.json"
@@ -93,12 +96,13 @@ class App:
         self._logins_name = "logins"
         self._users_name = "users"
         self._verification_name = "verification"
-        self.username = None
-        self.password = None
-        self.email = None
-        self.user = None
+        self.username: str | None = None
+        self.password: str | None = None
+        self.email: str | None = None
+        self.user: User | None = None
         self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
         logger.info(f"creating database {self.DATABASE_DIR}")
+        self.days: DaysManager | None = None
 
         self._create_table(self._logins_name, ("username", "password", "email", "verified"))
         self._create_table(
@@ -311,7 +315,7 @@ class App:
                         self.user.height,
                         self.user.weight,
                         self.user.gender,
-                        self.user.daily_target,
+                        None
                     )
                 ],
             )
@@ -327,7 +331,7 @@ class App:
                         user.height,
                         user.weight,
                         user.gender,
-                        user.daily_target,
+                        None
                     )
                 ],
             )
@@ -348,6 +352,8 @@ class App:
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
+        logger.info(msg="Daily target not provided, please use create_daily_target method to set your daily target.")
+
         self.load_user(user)
         self.user = user
 
@@ -357,7 +363,7 @@ class App:
         protein: float | None = None,
         carbs: float | None = None,
         fats: float | None = None,
-        activity: Literal[1, 2, 3, 4, 5] | None = None,
+        activity: Literal[1, 2, 3, 4, 5] | None = 3,
     ):
         """
         This lets the user create a new daily target.
@@ -375,9 +381,29 @@ class App:
         try:
             if kcal and protein and carbs and fats:
                 self.user.create_daily_target(kcal, protein, carbs, fats)
-            elif activity:
-                self.user.set_daily_target(activity)
             else:
-                logger.warning("Not enough data given, please give: kcal, protein, carbs, fats or activity.")
+                self.user.set_daily_target(activity)
+            logger.info(msg="Creating daily target.")
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
+
+    def add_day(self):
+        self.days = DaysManager(self.user)
+        self.days.add_day()
+
+    def add_to_meal(self, index: int, products: list[EatableProduct | Product]):
+        self.days.add_to_meal(index, products)
+
+    def show_progres(self, variable: Literal["kcal", "protein", "carbs", "fats"]):
+        print(self.days.show_progres(variable))
+
+if __name__ == "__main__":
+    app = App()
+    app.register("test", "Ab1@cdefgh", "gmail.com")
+    app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
+    app.create_user("test", "test", 16, 2, 3, "male")
+    app.login("test", "Ab1@cdefgh")
+    app.create_daily_target(activity=3)
+    app.add_day()
+    app.add_to_meal(0, [Product(name="ser", id_=10000, protein=10, carbs=20, fats=20), Product(name="ers", id_=234, protein=23, carbs=34, fats=6)])
+    app.show_progres("protein")

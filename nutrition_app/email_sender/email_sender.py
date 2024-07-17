@@ -3,9 +3,9 @@ import os
 from random import randint
 
 from email.message import EmailMessage
-from dotenv import load_dotenv
-
-load_dotenv()
+# from dotenv import load_dotenv
+#
+# load_dotenv()
 
 
 class Sender:

@@ -182,12 +182,3 @@ class TestApp:
 
         assert app.user.daily_target.kcal == 1550
 
-    # def test_new_daily_target_not_enough_data(self, app):
-    #     with raises(expected_exception=Warning):
-    #         app.create_user("test", "test", 16, 2, 3, "male")
-    #         app.create_daily_target(kcal=38, protein=8, fats=1, carbs=0)
-    #
-    # def test_create_new_daily_target_not_adding_up_warning(self, app):
-    #     with raises(expected_exception=Warning):
-    #         app.create_user("test", "test", 16, 2, 3, "male")
-    #         app.create_daily_target(kcal=20, protein=20, fats=20, carbs=20)

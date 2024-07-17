@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Sequence
 from datetime import datetime
 from pathlib import Path
 import json
@@ -21,7 +21,7 @@ class Day:
         date: the date when the eating plan is created.
     """
 
-    def __init__(self, user: User, date: str = None):
+    def __init__(self, user: User, date: int = None):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
         self.progres = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
@@ -42,16 +42,8 @@ class Day:
         Returns: str with calender date and the weekday.
         """
         now = datetime.now()
-        week_dict = {
-            0: "Monday",
-            1: "Tuesday",
-            2: "Wednesday",
-            3: "Thursday",
-            4: "Friday",
-            5: "Saturdey",
-            6: "Sunday",
-        }
-        return f"{now.day}-{now.month}-{now.year}, {week_dict.get(now.weekday())}"
+        return now.strftime("%y%m%d")
+
 
     def _validate(self, meal_index: int) -> None:
         """
@@ -64,7 +56,7 @@ class Day:
         if meal_index >= len(self.user.meal_order):
             raise ValueError(error_base.get("E10").format(len(self.user.meal_order) - 1))
 
-    def add_to_meal(self, meal_index: int, products: list[EatableProduct | FastProduct]) -> None:
+    def add_to_meal(self, meal_index: int, products: Sequence[EatableProduct | FastProduct]) -> None:
         """
         This lets the user add a list of EatableProducts and / or FastProducts.
         Args:
@@ -113,7 +105,7 @@ class Day:
         )
         return self.progres["fats"]
 
-    def get_progres_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"]) -> list[str]:
+    def print_progres_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"]) -> list[str]:
         """
         This lists progres for the user.
         Args:

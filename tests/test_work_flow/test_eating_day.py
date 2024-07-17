@@ -125,7 +125,7 @@ class TestDay:
         day.kcal_progres
         full = round(day.progres["kcal"] / 5)
         less = 20 - full
-        assert day.get_progres_bar(variable="kcal") == [
+        assert day.print_progres_bar(variable="kcal") == [
             int(full) * "▰" + int(less) * "▱",
             f"{day.progres['kcal']}%",
         ]
@@ -134,7 +134,7 @@ class TestDay:
         day.protein_progres
         full = round(day.progres["protein"] / 5)
         less = 20 - full
-        assert day.get_progres_bar(variable="protein") == [
+        assert day.print_progres_bar(variable="protein") == [
             int(full) * "▰" + int(less) * "▱",
             f"{day.progres['protein']}%",
         ]
@@ -143,7 +143,7 @@ class TestDay:
         day.carbs_progres
         full = round(day.progres["carbs"] / 5)
         less = 20 - full
-        assert day.get_progres_bar(variable="carbs") == [
+        assert day.print_progres_bar(variable="carbs") == [
             int(full) * "▰" + int(less) * "▱",
             f"{day.progres['carbs']}%",
         ]
@@ -152,11 +152,11 @@ class TestDay:
         day.fats_progres
         full = round(day.progres["fats"] / 5)
         less = 20 - full
-        assert day.get_progres_bar(variable="fats") == [
+        assert day.print_progres_bar(variable="fats") == [
             int(full) * "▰" + int(less) * "▱",
             f"{day.progres['fats']}%",
         ]
 
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):
-            day.get_progres_bar(variable="error")
+            day.print_progres_bar(variable="error")

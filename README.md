@@ -7,9 +7,12 @@ This application is for people who want to keep track of their calorie intake an
 
 Go to your project root directory and use commands such as:
 ```
-pip -m venv venv
+python -m venv venv
+source venv/Scripts/activate
 pip install .[dev]
 ```
+
+>if "source venv/Scripts/activate" doesn't work try out another Pycharm envioronment
 
 You can run the application by creating an instance of App class:
 [application](nutrition_app/app/application.py)
