@@ -83,7 +83,7 @@ class TestDay:
     def test_set_date(self, day):
         now = datetime.now()
 
-        assert day.set_date() == f"{now.day}-{now.month}-{now.year}, {WEEK_DICT.get(now.weekday())}"
+        assert day.set_date() == now.strftime("%y%m%d")
 
     def test_validate(self, day):
         with raises(expected_exception=ValueError):
