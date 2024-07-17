@@ -260,9 +260,10 @@ class App:
         self.database_connector.add_to_table(self._verification_name, [(email, code)])
         self._save_to_logins_db(username, password, email)
 
-    def verify(self, username: str, email: str, code: str):
-        if code == self.database_connector.get_record_from_table(self._verification_name, "email", email)["code"]:
+    def verify(self, username: str, email: str, code: str | int):
+        if str(code) == self.database_connector.get_record_from_table(self._verification_name, "email", email)["code"]:
             self.database_connector.update_record_in_table(self._logins_name, "username", username, "verified", True)
+            logger.info("Your email is now verified.")
         else:
             raise ValueError(error_base.get("E14"))
 
@@ -287,56 +288,23 @@ class App:
             raise IncorrectLoginInformation(error_base.get("E13"))
 
         if not self.database_connector.get_record_from_table(self._logins_name, "username", username)["verified"]:
-            logger.warning("You need to verify your email first")
+            logger.warning("You need to verify your email first.")
             return None
 
         self.username = username
         self.password = password
-        self.load_user()
+        # self.load_user(username)
 
-    def load_user(self, user: "User" = None):
-        """
-        This lets app user to load their user profile.
-        Args:
-            user: the user needed to use the app.
-        Warnings:
-            if user hasn't been created.
-        """
+    def load_user(self, username: str):
+        user_info = self.database_connector.get_record_from_table(table_name= self._users_name, key_name= "username", key_val= username)
 
-        if self.user is not None:
-            self.database_connector.add_to_table(
-                self._users_name,
-                [
-                    (
-                        self.username,
-                        self.user.name,
-                        self.user.surname,
-                        self.user.age,
-                        self.user.height,
-                        self.user.weight,
-                        self.user.gender,
-                        None
-                    )
-                ],
-            )
-        elif self.user is None and user is not None:
-            self.database_connector.add_to_table(
-                self._users_name,
-                [
-                    (
-                        self.username,
-                        user.name,
-                        user.surname,
-                        user.age,
-                        user.height,
-                        user.weight,
-                        user.gender,
-                        None
-                    )
-                ],
-            )
+        if user_info is not {}:
+            user = User(name= user_info.get("name"))
         else:
-            logger.info(msg="insufficient information, please create a new user.")
+            logger.info("Please create a new user with create_user method.")
+
+
+
 
     def create_user(
         self,
@@ -352,9 +320,26 @@ class App:
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
-        logger.info(msg="Daily target not provided, please use create_daily_target method to set your daily target.")
+        if not daily_target:
+            logger.info(msg="Daily target not provided, please use create_daily_target method to set your daily target.")
 
-        self.load_user(user)
+
+        self.database_connector.add_to_table(
+            self._users_name,
+            [
+                (
+                    self.username,
+                    user.name,
+                    user.surname,
+                    user.age,
+                    user.height,
+                    user.weight,
+                    user.gender,
+                    None
+                )
+            ],
+        )
+
         self.user = user
 
     def create_daily_target(
@@ -404,6 +389,4 @@ if __name__ == "__main__":
     app.create_user("test", "test", 16, 2, 3, "male")
     app.login("test", "Ab1@cdefgh")
     app.create_daily_target(activity=3)
-    app.add_day()
-    app.add_to_meal(0, [Product(name="ser", id_=10000, protein=10, carbs=20, fats=20), Product(name="ers", id_=234, protein=23, carbs=34, fats=6)])
-    app.show_progres("protein")
+    app.database_connector.get_record_from_table(table_name=app._users_name, key_name="username", key_val="erfwerf")
