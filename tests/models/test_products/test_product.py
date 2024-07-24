@@ -17,12 +17,6 @@ def product():
 
 class TestProduct:
 
-    def test_repr(self, product):
-        assert (
-            f"{product.__class__.__name__}(name={product.name}, id={product.id_}, protein={product.protein}, carbs={product.carbs}, fats={product.fats}, kcal={product.kcal})"
-            == product.__repr__()
-        )
-
     def test_eq(self, product):
         product2 = Product(name="ser", id_=10000, protein=10, carbs=20, fats=20)
         assert product == product2

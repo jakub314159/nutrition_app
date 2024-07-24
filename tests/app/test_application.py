@@ -158,7 +158,7 @@ class TestApp:
         app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
         app.login("test", "Ab1@cdefgh")
 
-        assert app.username == "test"
+        assert app._username == "test"
 
     def test_create_user(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
@@ -174,11 +174,10 @@ class TestApp:
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(kcal=340, protein=20, fats=20, carbs=20)
 
-        assert app.user.daily_target.kcal == 340
+        assert app._user.daily_target.kcal == 340
 
     def test_set_new_daily_target(self, app):
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(activity=3)
 
-        assert app.user.daily_target.kcal == 1550
-
+        assert app._user.daily_target.kcal == 1550

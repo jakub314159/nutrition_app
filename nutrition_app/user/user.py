@@ -4,6 +4,7 @@ from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.numerical_attribute import NumericalAttribute
 from nutrition_app import database_path
+from nutrition_app import logger, database_path
 
 
 class User:
@@ -100,6 +101,7 @@ class User:
         Args:
             meals: list[str] the order of meals.
         """
+        logger.info("Meal order created succesfully.")
         self.meal_order = meals
 
     def to_dict(self):

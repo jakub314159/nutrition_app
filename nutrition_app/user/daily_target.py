@@ -1,4 +1,4 @@
-from typing import Literal, Any
+from typing import Literal
 
 from nutrition_app.constants import ACTIVITY_COEFFICIENTS, Gender
 from nutrition_app.error_station import error_base
@@ -15,10 +15,10 @@ class DailyTarget:
     This class lets you set or create a target for the user.
 
     Attributes:
-        protein: the ammount od protein
-        carbs: the ammount od carbs
-        fats: the ammount od fats
-        kcal: the ammount od kcal
+        protein: the amount od protein
+        carbs: the amount od carbs
+        fats: the amount od fats
+        kcal: the amount od kcal
     """
 
     def __init__(self, protein=None, carbs=None, fats=None, kcal=None):
@@ -59,7 +59,7 @@ class DailyTarget:
             carbs: the amount of carbs.
             fats: the amount of fats.
         Raises:
-            IncorrectMacroError (super class of ValueError): if the usser input is wrong.
+            IncorrectMacroError (super class of ValueError): if the user input is wrong.
         """
         self._validate_macro(protein, carbs, fats, kcal)
 
@@ -100,9 +100,9 @@ class DailyTarget:
 
         self.kcal = round(bmr * ACTIVITY_COEFFICIENTS[activity], -1)
 
-        self.protein = self.kcal * 0.20 / 4
-        self.carbs = self.kcal * 0.50 / 4
-        self.fats = self.kcal * 0.30 / 9
+        self.protein = round(self.kcal * 0.20 / 4)
+        self.carbs = round(self.kcal * 0.50 / 4)
+        self.fats = round(self.kcal * 0.30 / 9)
 
     def to_dict(self):
         """
@@ -114,7 +114,7 @@ class DailyTarget:
     def from_dict(cls, dict) -> "DailyTarget":
         """
         Args:
-            dict: the dict from wchih the new object will be created.
+            dict: the dict from which the new object will be created.
 
         Returns: a new object from the class DailyTarget.
         """

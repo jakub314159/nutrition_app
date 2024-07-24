@@ -15,6 +15,9 @@ class Meal:
     def __init__(self, products: list[EatableProduct | FastProduct] | None = None):
         self.products = products or []
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(product={self.products})"
+
     def add_product(self, product: EatableProduct | FastProduct) -> None:
         """
         This adds a product to self.products

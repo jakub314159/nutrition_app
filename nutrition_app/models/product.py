@@ -13,7 +13,6 @@ class Product:
     Attributes:
         PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
         name: the name of the product.
-        id_: id of the product.
         protein: the amount of protein in the product.
         carbs: the amount of carbs in the product.
         fats: the amount of fats in the product.
@@ -48,10 +47,10 @@ class Product:
         self.fiber = kwargs.get("fiber", None)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name}, id={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
+        return f"{self.__class__.__name__}(name={self.name}, id_={self.id_}, protein={self.protein}, carbs={self.carbs}, fats={self.fats}, kcal={self.kcal})"
 
     def __eq__(self, other: "Product"):
-        return self.name == other.name and self.id_ == other.id_
+        return self.name == other.name and self.kcal == other.kcal
 
     @property
     def protein(self) -> float:

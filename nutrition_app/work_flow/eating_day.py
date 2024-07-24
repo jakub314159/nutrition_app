@@ -1,16 +1,17 @@
 from typing import Literal, Sequence
 from datetime import datetime
-from pathlib import Path
-import json
-
-from nutrition_app.user.daily_target import DailyTarget
+from typing import TypedDict
 
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.models.meal import Meal
 from nutrition_app.user.user import User
-from nutrition_app.models.product import EatableProduct, Product
+from nutrition_app.models.product import EatableProduct
 from nutrition_app.error_station import error_base
 
+class ProgressDict(TypedDict):
+    percentage: float
+    actual: float
+    target: float
 
 class Day:
     """
@@ -24,7 +25,7 @@ class Day:
     def __init__(self, user: User, date: int = None):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
-        self.progres = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
+        self.progress = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
         self.date = date or self.set_date()
 
     def __repr__(self) -> str:
@@ -38,12 +39,11 @@ class Day:
     @staticmethod
     def set_date():
         """
-        This lets the user to set the date in wchih the user eats.
+        This lets the user to set the date in which the user eats.
         Returns: str with calender date and the weekday.
         """
         now = datetime.now()
         return now.strftime("%y%m%d")
-
 
     def _validate(self, meal_index: int) -> None:
         """
@@ -78,34 +78,42 @@ class Day:
         self.meals[self.user.meal_order[meal_index]].delete_product(product_index)
 
     @property
-    def kcal_progres(self):
-        self.progres["kcal"] = round(
-            sum([x.count_ov_kcal() for x in self.meals.values()]) / self.user.daily_target.kcal * 100
-        )
-        return self.progres["kcal"]
+    def kcal_progress(self) -> ProgressDict:
+        actual = sum([x.count_ov_kcal() for x in self.meals.values()])
+
+        self.progress["kcal"] = round(actual / self.user.daily_target.kcal * 100)
+
+        return {
+            "percentage": self.progress["kcal"],
+            "actual": actual,
+            "target": self.user.daily_target.kcal
+        }
 
     @property
-    def protein_progres(self):
-        self.progres["protein"] = round(
-            sum([x.count_ov_protein() for x in self.meals.values()]) / self.user.daily_target.protein * 100
-        )
-        return self.progres["protein"]
+    def protein_progress(self) -> ProgressDict:
+        actual = sum([x.count_ov_protein() for x in self.meals.values()])
+        
+        self.progress["protein"] = round(actual / self.user.daily_target.protein * 100)
+        
+        return {"percentage": self.progress["protein"], "actual": actual, "target": self.user.daily_target.protein}
 
     @property
-    def carbs_progres(self):
-        self.progres["carbs"] = round(
-            sum([x.count_ov_carbs() for x in self.meals.values()]) / self.user.daily_target.carbs * 100
-        )
-        return self.progres["carbs"]
+    def carbs_progress(self) -> ProgressDict:
+        actual = sum([x.count_ov_carbs() for x in self.meals.values()])
+
+        self.progress["carbs"] = round(actual / self.user.daily_target.carbs * 100)
+
+        return {"percentage": self.progress["carbs"], "actual": actual, "target": self.user.daily_target.carbs}
 
     @property
-    def fats_progres(self):
-        self.progres["fats"] = round(
-            sum([x.count_ov_fats() for x in self.meals.values()]) / self.user.daily_target.fats * 100
-        )
-        return self.progres["fats"]
+    def fats_progress(self) -> ProgressDict:
+        actual = sum([x.count_ov_fats() for x in self.meals.values()])
 
-    def print_progres_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"]) -> list[str]:
+        self.progress["fats"] = round(actual / self.user.daily_target.fats * 100)
+
+        return {"percentage": self.progress["fats"], "actual": actual, "target": self.user.daily_target.fats}
+
+    def get_progress_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"] = None) -> str:
         """
         This lists progres for the user.
         Args:
@@ -116,16 +124,16 @@ class Day:
         """
         match variable:
             case "kcal":
-                local_progress = self.kcal_progres
+                local_progress = self.kcal_progress
             case "protein":
-                local_progress = self.protein_progres
+                local_progress = self.protein_progress
             case "carbs":
-                local_progress = self.carbs_progres
+                local_progress = self.carbs_progress
             case "fats":
-                local_progress = self.fats_progres
+                local_progress = self.fats_progress
             case _:
                 raise ValueError(error_base.get("E9").format(variable))
 
-        full = round(local_progress / 5)
+        full = round(local_progress["percentage"] / 5)
         less = 20 - full
-        return [int(full) * "▰" + int(less) * "▱", f"{self.progres[variable]}%"]
+        return f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%"
