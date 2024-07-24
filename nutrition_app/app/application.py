@@ -301,9 +301,8 @@ class App:
             table_name=self._users_name, key_name="username", key_val=username
         )
 
-        username = user_info.pop("username")
-
-        if user_info is not {}:
+        if user_info != {}:
+            username = user_info.pop("username")
             try:
                 dict_dt = self.database_connector.get_record_from_table(
                     table_name=self._daily_target_name, key_name="username", key_val=username

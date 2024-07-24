@@ -29,7 +29,7 @@ class MockedConnector(BaseConnector):
         for e in v:
             if e[key_name] == key_val:
                 return e
-        raise ValueError("key_val not found")
+        return {}
 
     def get_table(self, table_name: str) -> dict[str, Any]:
         return self.tables[table_name]
