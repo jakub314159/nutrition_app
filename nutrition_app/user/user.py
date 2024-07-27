@@ -1,9 +1,7 @@
 from typing import Literal
 
-from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.numerical_attribute import NumericalAttribute
-from nutrition_app import database_path
 from nutrition_app import logger, database_path
 
 
@@ -12,14 +10,14 @@ class User:
     This is the user representation.
 
     Attributes:
-        name: users name.
-        surname: users surname.
-        age: users age (must be greater than 0).
-        height: users height that will be turn into meters.
-        weight: users weight.
-        gender: users gender (male or female).
-        daily_target: is an instance of the class DailyTarget, basic value is 0.
-        meal_order: this is the order in which the user will eat his meals.
+        name(str): users name.
+        surname(str): users surname.
+        age(int): users age (must be greater than 0).
+        height(float): users height that will be turn into meters.
+        weight(float): users weight.
+        gender(str): users gender (male or female).
+        daily_target(DailyTarget): is an instance of the class DailyTarget, basic value is 0.
+        meal_order(None | list[str]): this is the order in which the user will eat his meals.
     """
 
     age = NumericalAttribute()
@@ -45,7 +43,7 @@ class User:
         self.weight = weight
         self.gender = gender
         self.daily_target = daily_target or DailyTarget()
-        self.meal_order = None or ["breakfast", "dinner", "snack", "supper"]
+        self.meal_order: None | list[str] = None or ["breakfast", "dinner", "snack", "supper"]
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name}, surname={self.surname}, weight={self.weight}, height={self.height}, age={self.age}, gender={self.gender}, daily_target={self.daily_target}, meal_order={self.meal_order})"
@@ -57,9 +55,10 @@ class User:
 
     def count_bmi(self) -> float:
         """
-        This will count the users bmi.
+        Count the users bmi.
+
         Returns:
-            user bmi.
+            float: users bmi.
         """
         height = self.height / 100
         return round(self.weight / height**2, 2)
@@ -72,20 +71,28 @@ class User:
         fats: float,
     ) -> None:
         """
-        This lets user create a daily target.
+        Create a daily target for the user.
+
         Args:
-            kcal: the amount of kcal needed to be consumed daily.
-            protein: the amount of protein needed to be consumed daily.
-            carbs: the amount of carbs needed to be consumed daily.
-            fats: the amount of fats needed to be consumed daily.
+            kcal(float): the amount of kcal needed to be consumed daily.
+            protein(float): the amount of protein needed to be consumed daily.
+            carbs(float): the amount of carbs needed to be consumed daily.
+            fats(float): the amount of fats needed to be consumed daily.
+
+        Returns:
+            None
         """
         self.daily_target.create_daily_target(kcal=kcal, protein=protein, carbs=carbs, fats=fats)
 
-    def set_daily_target(self, activity: Literal[1, 2, 3, 4, 5]):
+    def set_daily_target(self, activity: Literal[1, 2, 3, 4, 5]) -> None:
         """
-        This lets user set a daily target based on his measurements and activity.
+        Set a daily target based on users activity.
+
         Args:
-            activity: users activity ranging from 1 to 5.
+            activity(Literal[1, 2, 3, 4, 5]): users activity ranging from 1 to 5.
+
+        Returns:
+            None
         """
         self.daily_target.set_daily_target(
             weight=self.weight,
@@ -97,16 +104,21 @@ class User:
 
     def set_meal_order(self, meals: list[str]) -> None:
         """
-        This lets the user set the meal order.
+        Set the meal order.
+
         Args:
-            meals: list[str] the order of meals.
+            meals (list[str]): the order of meals.
+
+        Returns:
+            None
         """
-        logger.info("Meal order created succesfully.")
+        logger.info("Meal order created successfully.")
         self.meal_order = meals
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
-        Returns: The users dict
+        Returns:
+            dict: user dict.
         """
         user_dict = self.__dict__
         user_dict["daily_target"] = self.daily_target.to_dict()
@@ -115,12 +127,16 @@ class User:
     @classmethod
     def from_dict(cls, data: dict[str]) -> "User":
         """
-        This creates a new object of the class from dict.
-        Args:
-            data: The dict from wchih the new objewct will be created.
+        Creates a User object from dict.
 
-        Returns: The new object from data.
+        Args:
+            data (dict[str]): the dict from which the User will be created.
+
+        Returns:
+            User: new object from the class User.
         """
+        daily_target = data.pop("daily_target", None)
+
         return cls(
             name=data["name"],
             surname=data["surname"],
@@ -128,43 +144,5 @@ class User:
             height=data["height"],
             weight=data["weight"],
             gender=data["gender"],
-            daily_target=DailyTarget.from_dict(data["daily_target"]),
+            daily_target=daily_target,
         )
-
-    # @classmethod
-    # def _check_products_table(cls) -> bool:
-    #     connector = SQLConnector(database_path=cls.PRODUCTS_DIR)
-    #     tables = connector.get_existing_tables()
-    #     return bool(tables) and cls.TABLE_NAME in tables
-    #
-    # def _create_products_table(self):
-    #     if not self._check_products_table():
-    #         connector = SQLConnector(database_path=self.PRODUCTS_DIR)
-    #         connector.create_table(
-    #             self.TABLE_NAME, ("name", "surname", "age", "height", "weight", "gender", "daily_target", "meal_order")
-    #         )
-    #
-    # def save_to_sql_db(self):
-    #     self._create_products_table()
-    #     connector = SQLConnector(database_path=self.PRODUCTS_DIR)
-    #     connector.add_to_table(
-    #         self.TABLE_NAME,
-    #         [
-    #             (
-    #                 self.name,
-    #                 self.surname,
-    #                 self.age,
-    #                 self.height,
-    #                 self.weight,
-    #                 self.gender,
-    #                 self.daily_target,
-    #                 self.meal_order,
-    #             )
-    #         ],
-    #     )
-    #
-    # @classmethod
-    # def from_sql_db(cls, id_: int) -> dict:
-    #     connector = SQLConnector(database_path=database_path)
-    #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
-    #     return record

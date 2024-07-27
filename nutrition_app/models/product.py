@@ -1,9 +1,5 @@
-import json
-from pathlib import Path
-
 from nutrition_app import database_path
 from nutrition_app.error_station import error_base
-from nutrition_app.sql_connector import SQLConnector
 
 
 class Product:
@@ -12,11 +8,12 @@ class Product:
 
     Attributes:
         PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
-        name: the name of the product.
-        protein: the amount of protein in the product.
-        carbs: the amount of carbs in the product.
-        fats: the amount of fats in the product.
-        kcal: the amount of kilo-calories in the product.
+        name(str): the name of the product.
+        id_(int): the id of the product.
+        protein(float): the amount of protein in the product.
+        carbs(float): the amount of carbs in the product.
+        fats(float): the amount of fats in the product.
+        kcal(float): the amount of kilo-calories in the product.
         kwargs:
             salt: the amount of salt in the product.
             sugars: the amount of sugars in the product.
@@ -97,35 +94,12 @@ class Product:
 
     def to_dict(self) -> dict:
         """
-        This converts Product information into a dict.
+        Convert Product information into a dict.
 
         Returns:
-            This returns a dict from the command vars, that is modified in a way that it could be read by a json.
+            dict: This returns a dict from the command vars, that is modified in a way that it could be read by a json.
         """
         return vars(self)
-
-    # @classmethod
-    # def _check_products_table(cls) -> bool:
-    #     connector = SQLConnector(database_path=cls.PRODUCTS_DIR)
-    #     tables = connector.get_existing_tables()
-    #     return bool(tables) and cls.TABLE_NAME in tables
-    #
-    # def _create_products_table(self):
-    #     if not self._check_products_table():
-    #         connector = SQLConnector(database_path=self.PRODUCTS_DIR)
-    #         connector.create_table(self.TABLE_NAME, ("id", "name", "protein", "carbs", "fats", "kcal", "salt", "sugars", "fiber"))
-    #
-    #
-    # def save_to_sql_db(self):
-    #     self._create_products_table()
-    #     connector = SQLConnector(database_path=self.PRODUCTS_DIR)
-    #     connector.add_to_table(self.TABLE_NAME, [(self.id_, self.name, self.protein, self.carbs, self.fats, self.kcal, self.salt, self.sugars, self.fiber)])
-
-    # @classmethod
-    # def from_sql_db(cls, id_: int) -> dict:
-    #     connector = SQLConnector(database_path=database_path)
-    #     record = connector.get_record_from_table(cls.TABLE_NAME, "id", id_)
-    #     return record
 
 
 class EatableProduct:
@@ -133,8 +107,8 @@ class EatableProduct:
     This class inherits from another class (Product) and serves a point of being the real product itself.
 
     Attributes:
-        mass: the mass of the product.
-        product: object of the class Product.
+        mass(float): the mass of the product.
+        product(Product): object of the class Product.
     """
 
     def __init__(self, mass: float, product: Product):

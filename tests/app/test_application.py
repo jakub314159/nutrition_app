@@ -164,8 +164,8 @@ class TestApp:
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
         app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
-        app.create_user("test", "test", 16, 2, 3, "male")
         app.login("test", "Ab1@cdefgh")
+        app.create_user("test", "test", 16, 2, 3, "male")
 
         record = app.database_connector.get_record_from_table(app._users_name, "username", "test")
         assert record["name"] == "test" and record["age"] == 16 and record["height"] == 200 and record["weight"] == 3
@@ -181,3 +181,8 @@ class TestApp:
         app.create_daily_target(activity=3)
 
         assert app._user.daily_target.kcal == 1550
+
+    def test_logger_warning(self, caplog, app):
+        ...
+
+        assert "mój string" in caplog.text

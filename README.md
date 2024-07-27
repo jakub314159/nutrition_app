@@ -12,7 +12,7 @@ source venv/Scripts/activate
 pip install .[dev]
 ```
 
->if "source venv/Scripts/activate" doesn't work try out another Pycharm envioronment
+>if "source venv/Scripts/activate" doesn't work try out another Pycharm environment
 
 You can run the application by creating an instance of App class:
 [application](nutrition_app/app/application.py)

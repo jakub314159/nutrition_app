@@ -125,26 +125,25 @@ class TestDay:
         day.kcal_progress
         full = round(day.progress["kcal"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="kcal") == 'kcal\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 170.0 / 2700.0, progress: 6%'
-
+        assert day.get_progress_bar(variable="kcal") == "kcal\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 170.0 / 2700.0, progress: 6%"
 
     def test_get_progres_bar_protein_progres(self, day):
         day.protein_progress
         full = round(day.progress["protein"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="protein") == 'protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135, progress: 7%'
+        assert day.get_progress_bar(variable="protein") == "protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135, progress: 7%"
 
     def test_get_progres_bar_carbs_progres(self, day):
         day.carbs_progress
         full = round(day.progress["carbs"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="carbs") ==  'carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 338, progress: 3%'
+        assert day.get_progress_bar(variable="carbs") == "carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 338, progress: 3%"
 
     def test_get_progres_bar_fats_progres(self, day):
         day.fats_progress
         full = round(day.progress["fats"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="fats") == 'fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90, progress: 11%'
+        assert day.get_progress_bar(variable="fats") == "fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90, progress: 11%"
 
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):

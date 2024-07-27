@@ -6,11 +6,11 @@ class FastProduct:
     This class makes an object similar to the Product, but this one has less arguments so that it could be made easily.
 
     Attributes:
-      name: This is the name of the product
-      kcal: This is the number of calories that the product has
-      protein: This is the number of proteins that the product has
-      carbs: This is the number of carbs that the product has
-      fats: This is the number of fats that the product has
+      name(str): This is the name of the product.
+      kcal(float): This is the number of calories that the product has.
+      protein(float): This is the number of proteins that the product has.
+      carbs(float): This is the number of carbs that the product has.
+      fats(float): This is the number of fats that the product has.
     """
 
     kcal = NumericalAttribute()

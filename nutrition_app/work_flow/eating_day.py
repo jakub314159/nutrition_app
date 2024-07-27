@@ -8,24 +8,28 @@ from nutrition_app.user.user import User
 from nutrition_app.models.product import EatableProduct
 from nutrition_app.error_station import error_base
 
+
 class ProgressDict(TypedDict):
     percentage: float
     actual: float
     target: float
+
 
 class Day:
     """
     This class supports a single day of eating for the user.
 
     Attributes:
-        user: an object of the User class.
-        date: the date when the eating plan is created.
+        user (User): an object of the User class.
+        meals (dict[str, Meal]): meals in the day.
+        progress (dict[str: int]): the progress from the day.
+        date (int): the date when the eating plan is created.
     """
 
     def __init__(self, user: User, date: int = None):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
-        self.progress = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
+        self.progress: dict[str:int] = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
         self.date = date or self.set_date()
 
     def __repr__(self) -> str:
@@ -37,21 +41,28 @@ class Day:
         return False
 
     @staticmethod
-    def set_date():
+    def set_date() -> int:
         """
-        This lets the user to set the date in which the user eats.
-        Returns: str with calender date and the weekday.
+        Set the date in which the user eats.
+
+        Returns:
+            int: calender date and the weekday.
         """
         now = datetime.now()
         return now.strftime("%y%m%d")
 
     def _validate(self, meal_index: int) -> None:
         """
-        This checks if meal_index is in range of the users meal order.
+        Check if meal_index is in range of the users meal order.
+
         Args:
-            meal_index: the index that is going to be checked.
+            meal_index(int): index that is going to be checked.
+
         Raises:
-            ValueError: an error from the error base satting that the index is to high.
+            ValueError: if the index is to high.
+
+        Returns:
+            None
         """
         if meal_index >= len(self.user.meal_order):
             raise ValueError(error_base.get("E10").format(len(self.user.meal_order) - 1))
@@ -59,20 +70,28 @@ class Day:
     def add_to_meal(self, meal_index: int, products: Sequence[EatableProduct | FastProduct]) -> None:
         """
         This lets the user add a list of EatableProducts and / or FastProducts.
+
         Args:
-            meal_index: This is the index that specifies the meal to which the products will be added.
-            products: the list of objects from EatableProduct or FastProduct classes.
+            meal_index(int): index that specifies the meal to which the products will be added.
+            products (Sequence[EatableProduct | FastProduct]): list of objects from EatableProduct or FastProduct classes.
+
+        Returns:
+            None
         """
         self._validate(meal_index=meal_index)
         for product in products:
             self.meals[self.user.meal_order[meal_index]].add_product(product)
 
-    def delete_from_meal(self, meal_index: int, product_index: int):
+    def delete_from_meal(self, meal_index: int, product_index: int) -> None:
         """
-        This lets the user to delete a product from the meal.
+        Delete a product from the meal.
+
         Args:
-            meal_index: This is the index that specifies the meal to which the products will be added.
-            product_index: This is the index that specifies the product from which the products will be deleted.
+            meal_index(int): This is the index that specifies the meal to which the products will be added.
+            product_index(int): This is the index that specifies the product from which the products will be deleted.
+
+        Returns:
+            None
         """
         self._validate(meal_index=meal_index)
         self.meals[self.user.meal_order[meal_index]].delete_product(product_index)
@@ -83,18 +102,14 @@ class Day:
 
         self.progress["kcal"] = round(actual / self.user.daily_target.kcal * 100)
 
-        return {
-            "percentage": self.progress["kcal"],
-            "actual": actual,
-            "target": self.user.daily_target.kcal
-        }
+        return {"percentage": self.progress["kcal"], "actual": actual, "target": self.user.daily_target.kcal}
 
     @property
     def protein_progress(self) -> ProgressDict:
         actual = sum([x.count_ov_protein() for x in self.meals.values()])
-        
+
         self.progress["protein"] = round(actual / self.user.daily_target.protein * 100)
-        
+
         return {"percentage": self.progress["protein"], "actual": actual, "target": self.user.daily_target.protein}
 
     @property
@@ -113,14 +128,17 @@ class Day:
 
         return {"percentage": self.progress["fats"], "actual": actual, "target": self.user.daily_target.fats}
 
-    def get_progress_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"] = None) -> str:
+    def get_progress_bar(
+        self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None
+    ) -> list[str | float]:
         """
-        This lists progres for the user.
+        List progres for the user.
+
         Args:
-            variable: the nutrient on which the progres will be checked,
+            variable (Literal["kcal", "protein", "carbs", "fats"] | None): the nutrient on which the progres will be checked.
 
         Returns:
-            The list cointainig the progres bar and the procentage.
+            list[str | float]: list containing the progres bar and the percentage.
         """
         match variable:
             case "kcal":
@@ -136,4 +154,7 @@ class Day:
 
         full = round(local_progress["percentage"] / 5)
         less = 20 - full
-        return f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%"
+        return [
+            f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
+            local_progress["actual"],
+        ]
