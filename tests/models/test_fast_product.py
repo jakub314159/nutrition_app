@@ -10,4 +10,5 @@ def fast_product():
 
 
 class TestFastProduct:
-    pass
+    def test_repr(self, fast_product):
+        assert fast_product.__repr__() == "FastProduct(name=cheese, kcal=100.5, protein=23, carbs=10, fats=20)"

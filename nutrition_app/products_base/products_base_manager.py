@@ -86,4 +86,4 @@ class ProductsManager:
             Product: Object from class Product.
         """
         product = self.connector.get_record_from_table(self.name, "name", name)
-        return Product(name, product["protein"], product["carbs"], product["fats"], product["kcal"])
+        return Product(name, product["id"], product["protein"], product["carbs"], product["fats"], product["kcal"])

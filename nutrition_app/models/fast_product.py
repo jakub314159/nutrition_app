@@ -24,3 +24,6 @@ class FastProduct:
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name={self.name}, kcal={self.kcal}, protein={self.protein}, carbs={self.carbs}, fats={self.fats})"

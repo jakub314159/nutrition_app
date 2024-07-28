@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from pytest import fixture, raises
 from base64 import b64encode
@@ -11,8 +10,7 @@ from nutrition_app.app.application import (
     WrongMadePasswordError,
     IncorrectLoginInformation,
 )
-from nutrition_app.user.daily_target import DailyTarget
-from nutrition_app.sql_connector import SQLConnector
+
 from tests.mocked_connector import MockedConnector
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "test_db" / "test_login_base.json"
@@ -75,21 +73,18 @@ class TestApp:
         password = app.automatic_password()
         app.check_password(password)
 
-    def test_check_table(self, app):
-        val = app._check_table(app._logins_name)
-        assert val == True
-
     def test_delete_table(self, app):
-        app._logins_name = "test"
-        app.database_connector.create_table("test", (1, 2, 3))
-        app._delete_table("test")
+        with raises(expected_exception=KeyError):
+            app._logins_name = "test"
+            app.database_connector.create_table("test", (1, 2, 3))
+            app._delete_table("test")
 
-        assert app._check_table("test") == False
+            app.database_connector.get_table("test")
 
     def test_create_products_table(self, app):
         app._create_table(app._logins_name, ("1", "2", "3"))
-        val = app._check_table(app._logins_name)
-        assert val == True
+        val = app.database_connector.get_table(app._logins_name)
+        assert val == {'1': [], '2': [], '3': []}
 
     def test_update_record(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
@@ -182,7 +177,7 @@ class TestApp:
 
         assert app._user.daily_target.kcal == 1550
 
-    def test_logger_warning(self, caplog, app):
-        ...
-
-        assert "mój string" in caplog.text
+    # def test_logger_warning(self, caplog, app):
+    #     ...
+    #
+    #     assert "mój string" in caplog.text

@@ -101,7 +101,6 @@ class Product:
         """
         return vars(self)
 
-
 class EatableProduct:
     """
     This class inherits from another class (Product) and serves a point of being the real product itself.
@@ -114,6 +113,9 @@ class EatableProduct:
     def __init__(self, mass: float, product: Product):
         self.mass = mass
         self.product = product
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(mass={self._mass}, product={self.product})"
 
     @property
     def mass(self) -> float:
