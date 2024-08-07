@@ -71,7 +71,7 @@ class DaysManager:
         Returns:
             None
         """
-        day = Day(user=self.user, date= date)
+        day = Day(user=self.user)
         self.days.append(day)
 
     def add_to_meal(self, index: int, products: list[EatableProduct]):

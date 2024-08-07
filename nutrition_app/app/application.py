@@ -464,7 +464,7 @@ class App:
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
 
-    def add_day(self, date: int | None = None) -> None:
+    def add_day(self) -> None:
         """
         Create a new eating_day for the user.
 
@@ -472,7 +472,7 @@ class App:
             None
         """
         self.days = DaysManager(self._username, self._user)
-        self.days.add_day(date=date or None)
+        self.days.add_day()
         logger.info("Day added.")
 
     def add_products_to_meal(self, index: int, products: list[EatableProduct | FastProduct]) -> None:
