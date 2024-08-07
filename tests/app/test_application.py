@@ -10,6 +10,7 @@ from nutrition_app.app.application import (
     WrongMadePasswordError,
     IncorrectLoginInformation,
 )
+from nutrition_app.work_flow.eating_day import Day
 
 from tests.mocked_connector import MockedConnector
 
@@ -155,6 +156,12 @@ class TestApp:
 
         assert app._username == "test"
 
+    def test_load_user(self, app):
+        app.database_connector.create_table(app._users_name, ("username", "name", "surname", "age", "height", "weight", "gender"))
+        app.database_connector.add_to_table(app._users_name, [("test1", "name", "surname", 18, 180, 70, "male")])
+        app.load_user("test1")
+        assert app._user.name == "name"
+
     def test_create_user(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
@@ -176,6 +183,15 @@ class TestApp:
         app.create_daily_target(activity=3)
 
         assert app._user.daily_target.kcal == 1550
+
+    def test_add_day(self, app):
+        app.create_user("test", "test", 16, 2, 3, "male")
+        app.create_daily_target(activity=3)
+        app.add_day()
+        assert len(app.days.days) == 1 and isinstance(app.days.days[0], Day)
+
+    def test_add_to_meal(self, app):
+        pass
 
     # def test_logger_warning(self, caplog, app):
     #     ...

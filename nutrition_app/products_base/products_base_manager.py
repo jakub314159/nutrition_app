@@ -1,6 +1,7 @@
 from typing import Sequence
 
 from nutrition_app.models.product import Product
+from nutrition_app.sql_connector.base_connector import BaseConnector
 from nutrition_app.sql_connector.sql_connector import SQLConnector
 from pathlib import Path
 
@@ -13,8 +14,8 @@ class ProductsManager:
         connector(SQLConnector): the connector that lets you control the products table.
     """
 
-    def __init__(self):
-        self.connector = SQLConnector(database_path=Path(__file__).parent / "products_id_base.db")
+    def __init__(self, connector: BaseConnector | None = None):
+        self.connector = connector or SQLConnector(database_path=Path(__file__).parent / "products_id_base.db")
         self.name = "id_base"
         self._create_table(table_name=self.name, fields=("id", "name", "protein", "carbs", "fats", "kcal"))
 

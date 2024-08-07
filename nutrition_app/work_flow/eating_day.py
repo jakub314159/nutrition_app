@@ -26,10 +26,10 @@ class Day:
         date (int): the date when the eating plan is created.
     """
 
-    def __init__(self, user: User, date: int = None):
+    def __init__(self, user: User, date: int | None = None):
         self.user = user
         self.meals: dict[str, Meal] = {meal_name: Meal() for meal_name in self.user.meal_order}
-        self.progress: dict[str:int] = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
+        self.progress: dict[str, int] = {"kcal": 0, "protein": 0, "carbs": 0, "fats": 0}
         self.date = date or self.set_date()
 
     def __repr__(self) -> str:
@@ -102,7 +102,7 @@ class Day:
 
         self.progress["kcal"] = round(actual / self.user.daily_target.kcal * 100)
 
-        return {"percentage": self.progress["kcal"], "actual": actual, "target": self.user.daily_target.kcal}
+        return {"percentage": self.progress["kcal"], "actual": round(actual, 1), "target": self.user.daily_target.kcal}
 
     @property
     def protein_progress(self) -> ProgressDict:
@@ -110,7 +110,7 @@ class Day:
 
         self.progress["protein"] = round(actual / self.user.daily_target.protein * 100)
 
-        return {"percentage": self.progress["protein"], "actual": actual, "target": self.user.daily_target.protein}
+        return {"percentage": self.progress["protein"], "actual": round(actual, 1), "target": self.user.daily_target.protein}
 
     @property
     def carbs_progress(self) -> ProgressDict:
@@ -118,7 +118,7 @@ class Day:
 
         self.progress["carbs"] = round(actual / self.user.daily_target.carbs * 100)
 
-        return {"percentage": self.progress["carbs"], "actual": actual, "target": self.user.daily_target.carbs}
+        return {"percentage": self.progress["carbs"], "actual": round(actual, 1), "target": self.user.daily_target.carbs}
 
     @property
     def fats_progress(self) -> ProgressDict:
@@ -126,7 +126,7 @@ class Day:
 
         self.progress["fats"] = round(actual / self.user.daily_target.fats * 100)
 
-        return {"percentage": self.progress["fats"], "actual": actual, "target": self.user.daily_target.fats}
+        return {"percentage": self.progress["fats"], "actual": round(actual, 1), "target": self.user.daily_target.fats}
 
     def get_progress_bar(
         self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None
@@ -158,3 +158,5 @@ class Day:
             f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
             local_progress["actual"],
         ]
+    def to_tuple(self):
+        return (self.progress["kcal"], self.progress["protein"], self.progress["carbs"], self.progress["fats"], self.user.daily_target.kcal, self.user.daily_target.protein, self.user.daily_target.carbs, self.user.daily_target.fats)

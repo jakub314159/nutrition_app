@@ -12,7 +12,7 @@ from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 from nutrition_app.email_sender.email_sender import Sender
-from nutrition_app.work_flow.day_manager import DaysManager
+from nutrition_app.work_flow.days_manager import DaysManager
 from nutrition_app.products_base.products_base_manager import ProductsManager
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
@@ -417,6 +417,7 @@ class App:
 
         logger.info(msg="User created successfully.")
         self._user = user
+        self.days = DaysManager(self._username, self._user)
 
     def create_daily_target(
         self,
@@ -463,15 +464,15 @@ class App:
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
 
-    def add_day(self) -> None:
+    def add_day(self, date: int | None = None) -> None:
         """
         Create a new eating_day for the user.
 
         Returns:
             None
         """
-        self.days = DaysManager(self._user)
-        self.days.add_day()
+        self.days = DaysManager(self._username, self._user)
+        self.days.add_day(date=date or None)
         logger.info("Day added.")
 
     def add_products_to_meal(self, index: int, products: list[EatableProduct | FastProduct]) -> None:
@@ -541,3 +542,13 @@ class App:
                 return self.days.show_progress(variable)[1]
             else:
                 [print(self.days.show_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
+    def save_day(self, date:int):
+        """
+        Save the day to sql database.
+        Args:
+            date(int): the representation of the date yy:mm:dd
+
+        Returns:
+            None
+        """
+        self.days.save_to_database(date)
