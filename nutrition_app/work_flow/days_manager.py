@@ -64,14 +64,14 @@ class DaysManager:
         """
         self.connector.create_table(table_name, fields)
 
-    def add_day(self) -> None:
+    def add_day(self, date: int) -> None:
         """
         Add a new day to self.days
 
         Returns:
             None
         """
-        day = Day(user=self.user)
+        day = Day(user=self.user, date= date)
         self.days.append(day)
 
     def add_to_meal(self, index: int, products: list[EatableProduct]):
