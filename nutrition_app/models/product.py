@@ -101,6 +101,7 @@ class Product:
         """
         return vars(self)
 
+
 class EatableProduct:
     """
     This class inherits from another class (Product) and serves a point of being the real product itself.

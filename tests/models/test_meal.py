@@ -15,7 +15,10 @@ def meal():
 
 class TestMeal:
     def test_repr(self, meal):
-        assert meal.__repr__() == "Meal(product=[EatableProduct(mass=100, product=Product(name=ser, id_=54374, protein=10, carbs=20, fats=20, kcal=300)), FastProduct(name=ser, kcal=100.9, protein=10, carbs=20, fats=20)])"
+        assert (
+            meal.__repr__()
+            == "Meal(product=[EatableProduct(mass=100, product=Product(name=ser, id_=54374, protein=10, carbs=20, fats=20, kcal=300)), FastProduct(name=ser, kcal=100.9, protein=10, carbs=20, fats=20)])"
+        )
 
     def test_add_product(self, meal):
         product3 = EatableProduct(

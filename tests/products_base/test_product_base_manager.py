@@ -4,6 +4,7 @@ from nutrition_app.products_base.products_base_manager import ProductsManager
 from tests.mocked_connector import MockedConnector
 from nutrition_app.models.product import Product
 
+
 @fixture
 def manager():
     manager = ProductsManager()
@@ -11,6 +12,7 @@ def manager():
     manager.connector.create_table(table_name="id_base", fields=("id", "name", "protein", "carbs", "fats", "kcal"))
     manager.add_product(Product("ser", 0, 10, 10, 10, 120))
     return manager
+
 
 class TestProductsManager:
 
@@ -26,7 +28,7 @@ class TestProductsManager:
         assert id_ == 1
 
     def test_add_product(self, manager):
-        table =  manager.connector.get_table("id_base")
+        table = manager.connector.get_table("id_base")
         assert "ser" in table["name"]
 
     def test_get_product_by_id(self, manager):

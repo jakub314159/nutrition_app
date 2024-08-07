@@ -542,7 +542,8 @@ class App:
                 return self.days.show_progress(variable)[1]
             else:
                 [print(self.days.show_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
-    def save_day(self, date:int):
+
+    def save_day(self, date: int):
         """
         Save the day to sql database.
         Args:

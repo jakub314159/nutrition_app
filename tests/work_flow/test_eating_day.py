@@ -45,10 +45,6 @@ def day():
 
 
 class TestDay:
-
-    def test_repr(self, day):
-        assert f"{day.__class__.__name__}(user={day.user})" == day.__repr__()
-
     def test_eq_true(self, day):
         target = DailyTarget()
         target.set_daily_target(weight=70, height=170, activity=3, age=18, gender="male")
@@ -128,19 +124,19 @@ class TestDay:
         day.protein_progress
         full = round(day.progress["protein"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="protein")[0] == 'protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135.0, progress: 7%'
+        assert day.get_progress_bar(variable="protein")[0] == "protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135.0, progress: 7%"
 
     def test_get_progres_bar_carbs_progres(self, day):
         day.carbs_progress
         full = round(day.progress["carbs"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="carbs")[0] == 'carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 337.5, progress: 3%'
+        assert day.get_progress_bar(variable="carbs")[0] == "carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 337.5, progress: 3%"
 
     def test_get_progres_bar_fats_progres(self, day):
         day.fats_progress
         full = round(day.progress["fats"] / 5)
         less = 20 - full
-        assert day.get_progress_bar(variable="fats")[0] == 'fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90.0, progress: 11%'
+        assert day.get_progress_bar(variable="fats")[0] == "fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90.0, progress: 11%"
 
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):

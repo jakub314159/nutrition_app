@@ -85,7 +85,7 @@ class TestApp:
     def test_create_products_table(self, app):
         app._create_table(app._logins_name, ("1", "2", "3"))
         val = app.database_connector.get_table(app._logins_name)
-        assert val == {'1': [], '2': [], '3': []}
+        assert val == {"1": [], "2": [], "3": []}
 
     def test_update_record(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
@@ -157,7 +157,9 @@ class TestApp:
         assert app._username == "test"
 
     def test_load_user(self, app):
-        app.database_connector.create_table(app._users_name, ("username", "name", "surname", "age", "height", "weight", "gender"))
+        app.database_connector.create_table(
+            app._users_name, ("username", "name", "surname", "age", "height", "weight", "gender")
+        )
         app.database_connector.add_to_table(app._users_name, [("test1", "name", "surname", 18, 180, 70, "male")])
         app.load_user("test1")
         assert app._user.name == "name"
@@ -187,7 +189,7 @@ class TestApp:
     def test_add_day(self, app):
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(activity=3)
-        app.add_day()
+        app.add_day(240101)
         assert len(app.days.days) == 1 and isinstance(app.days.days[0], Day)
 
     def test_add_to_meal(self, app):

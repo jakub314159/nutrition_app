@@ -5,11 +5,13 @@ from typing import Literal, Sequence
 from nutrition_app.models.product import EatableProduct
 from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.sql_connector.base_connector import BaseConnector
+from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 from nutrition_app.work_flow.eating_day import Day
 
+
 class DaysConnector(SQLConnector):
-    def get_days(self, table_name:str, username_val, date_val):
+    def get_days(self, table_name: str, username_val, date_val):
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
 
@@ -21,9 +23,7 @@ class DaysConnector(SQLConnector):
         result_list = []
 
         for record in many:
-            result_list.append(
-                {k:v for k, v in zip(keys, record)}
-            )
+            result_list.append({k: v for k, v in zip(keys, record)})
         connection.close()
 
         return result_list
@@ -39,14 +39,29 @@ class DaysManager:
         user (User): the User needed to use the DayManager.
     """
 
-    def __init__(self, username:str, user: User, connector: BaseConnector | None = None):
+    def __init__(self, username: str, user: User, connector: BaseConnector | None = None):
         self.days: list[Day] = []
         self.meal_order: None | list[str] = user.meal_order
         self.user = user
         self.username = username
         self.connector = connector or DaysConnector(database_path=Path(__file__).parents[1] / "days_database.db")
         self.name = "days"
-        self._create_table(self.name, ("id", "username", "date", "kcal_eaten", "protein_eaten", "carbs_eaten", "fats_eaten", "kcal_target", "protein_target", "carbs_target", "fats_target"))
+        self._create_table(
+            self.name,
+            (
+                "id",
+                "username",
+                "date",
+                "kcal_eaten",
+                "protein_eaten",
+                "carbs_eaten",
+                "fats_eaten",
+                "kcal_target",
+                "protein_target",
+                "carbs_target",
+                "fats_target",
+            ),
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}(self.user={self.user})"
@@ -54,11 +69,11 @@ class DaysManager:
     def _create_table(self, table_name: str, fields: Sequence[str]) -> None:
         """
         Creates a products table if the table doesn't exist.
-    
+
         Args:
             table_name(str): the name of the table.
             fields(Sequence[str]): the fields in the table.
-    
+
         Returns:
             None
         """
@@ -71,7 +86,7 @@ class DaysManager:
         Returns:
             None
         """
-        day = Day(user=self.user, date= date)
+        day = Day(user=self.user, date=date)
         self.days.append(day)
 
     def add_to_meal(self, index: int, products: list[EatableProduct]):
@@ -113,18 +128,39 @@ class DaysManager:
         _id = hash(str(self.username) + str(date))
         day = [x for x in self.days if x.date == date][0]
         day_info = day.to_tuple()
-        self.connector.add_to_table(self.name, [(_id, self.username, date,  *day_info)])
+        self.connector.add_to_table(self.name, [(_id, self.username, date, *day_info)])
 
-    def from_database(self, date:int):
+    def from_database(self, start_date: int):
         """
         Get day from database.
         Args:
-            date(int): the representation of the date yy:mm:dd
+            start_date(int): the representation of the date yy:mm:dd from which the days start.
 
         Returns:
             Day
         """
-        records = self.connector.get_days(self.name, self.username, date)
+        records = self.connector.get_days(self.name, self.username, start_date)
 
-        return Day()
+        days = []
 
+        for item in records:
+            days.append(
+                Day(
+                    date=item["date"],
+                    daily_target=DailyTarget(
+                        kcal=item["kcal_target"],
+                        protein=item["protein_target"],
+                        carbs=item["carbs_target"],
+                        fats=item["fats_target"],
+                    ),
+                    meal_order=["breakfast", "dinner", "snack", "supper"],
+                    progress={
+                        "kcal": item["kcal_eaten"],
+                        "protein": item["protein_eaten"],
+                        "carbs": item["carbs_eaten"],
+                        "fats": item["fats_eaten"],
+                    },
+                )
+            )
+
+        return days

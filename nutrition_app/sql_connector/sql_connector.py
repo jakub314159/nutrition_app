@@ -114,7 +114,6 @@ class SQLConnector:
         connection.close()
         return res_dict
 
-
     def get_table(self, table_name: str) -> dict[str, Any]:
         """
         Get full table as dict.
