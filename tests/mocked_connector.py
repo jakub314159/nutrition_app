@@ -29,7 +29,13 @@ class MockedConnector(BaseConnector):
         for e in v:
             if e[key_name] == key_val:
                 return e
-        raise ValueError("key_val not found")
+        return {}
+
+    def get_days(self, table_name: str, username_val: str, date_val: int) -> list[dict]:
+        v = [dict(zip(self.tables[table_name], t)) for t in zip(*self.tables[table_name].values())]
+        records = [x for x in v if x["username"] == username_val and x["date"] >= date_val]
+
+        return records
 
     def get_table(self, table_name: str) -> dict[str, Any]:
         return self.tables[table_name]

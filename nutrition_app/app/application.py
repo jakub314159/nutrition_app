@@ -1,20 +1,19 @@
-import json
 import random
-import sqlite3
-from base64 import b64encode, b64decode
+from base64 import b64encode
 from pathlib import Path
 from random import choices, shuffle
 from typing import Literal, Any, Sequence
 
 from nutrition_app.error_station import error_base
 from nutrition_app import logger, database_path
-from nutrition_app.models.product import EatableProduct, Product
+from nutrition_app.models.fast_product import FastProduct
+from nutrition_app.models.product import EatableProduct
 from nutrition_app.sql_connector import SQLConnector
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 from nutrition_app.email_sender.email_sender import Sender
-from nutrition_app.work_flow.eating_day import Day
-from nutrition_app.work_flow.day_manager import DaysManager
+from nutrition_app.work_flow.days_manager import DaysManager
+from nutrition_app.products_base.products_base_manager import ProductsManager
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "user_base" / "user_base.json"
@@ -66,7 +65,7 @@ class EmailTakenError(Exception):
 
 class IncorrectLoginInformation(ValueError):
     """
-    Super class of "ValueEror", that pops up when username or password are incorect while login in.
+    Super class of "ValueError", that pops up when username or password are incorrect while login in.
     """
 
     pass
@@ -74,7 +73,7 @@ class IncorrectLoginInformation(ValueError):
 
 class WrongMadePasswordError(ValueError):
     """
-    Super class of "ValueEror", that pops up when the password is incorrectly made.
+    Super class of "ValueError", that pops up when the password is incorrectly made.
     """
 
     pass
@@ -85,9 +84,7 @@ class App:
     This class is the application for counting your daily eating progres.
 
     Attributes:
-        username: The username required to use the app.
-        password: The password required to use the app.
-        email: The email required to register to the app.
+        _username: The username required to use the app.
     """
 
     DATABASE_DIR = database_path
@@ -96,37 +93,43 @@ class App:
         self._logins_name = "logins"
         self._users_name = "users"
         self._verification_name = "verification"
-        self.username: str | None = None
-        self.password: str | None = None
-        self.email: str | None = None
-        self.user: User | None = None
+        self._daily_target_name = "target"
+        self._username: str | None = None
+        self._user: User | None = None
         self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
         logger.info(f"creating database {self.DATABASE_DIR}")
         self.days: DaysManager | None = None
+        self.id_base_manager = ProductsManager()
 
         self._create_table(self._logins_name, ("username", "password", "email", "verified"))
-        self._create_table(
-            self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender", "daily_target")
-        )
+        self._create_table(self._users_name, ("username", "name", "surname", "age", "height", "weight", "gender"))
         self._create_table(self._verification_name, ("email", "code"))
+        self._create_table(self._daily_target_name, ("username", "protein", "carbs", "fats", "kcal"))
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
     def delete_account(self, table_name: str, primary_column: str, primary_value: Any) -> None:
         """
+        Delete your account.
+
         Args:
-            table_name: the name of the table from wchih you delete an account.
-            primary_column: the main column name.
-            primary_value: the main column value.
+            table_name(str): the name of the table from which you delete an account.
+            primary_column(str): the main column name.
+            primary_value(Any): the main column value.
+
+        Returns:
+            None
         """
         self.database_connector.remove_from_table(table_name, primary_column, primary_value)
 
     @staticmethod
     def check_password(password: str) -> str:
         """
+        Check if your password meets the requirements.
+
         Args:
-            password: The password that is going to be checked.
+            password(str): The password that is going to be checked.
 
         Raises:
             WrongMadePasswordError:
@@ -138,13 +141,13 @@ class App:
                 doesn't have letters.
 
         Returns:
-            The password if it's correct.
+            str: password if it's correct.
         """
         if len(password) < 8 or len(password) > 20:
             raise WrongMadePasswordError("Password must have from 8 to 20 characters.")
 
         if password.isupper():
-            raise WrongMadePasswordError("must have small leters")
+            raise WrongMadePasswordError("must have small letters")
 
         if password.islower():
             raise WrongMadePasswordError("must have big letters")
@@ -161,10 +164,12 @@ class App:
         return password
 
     @staticmethod
-    def automatic_password():
+    def automatic_password() -> str:
         """
+        Creates an automatic password.
+
         Returns:
-            Password if the user doesn't provide one.
+            str: password if the user doesn't provide one.
         """
 
         upp = [x.title() for x in choices(LETTERS, k=random.randint(2, 5))]
@@ -177,53 +182,61 @@ class App:
 
         return "".join(sum_list)
 
-    def _check_table(self, table_name: str) -> bool:
+    def _delete_table(self, name: str) -> None:
         """
-        This checks if the products table exists.
+        Deletes the products table.
+
+        Args:
+            name(str): The name of the table.
 
         Returns:
-            a True or False statement if the products table exists.
-        """
-        tables = self.database_connector.get_existing_tables()
-        return bool(tables) and table_name in tables
-
-    def _delete_table(self, name: str):
-        """
-        This deletes the products table.
-        Args:
-            name: The name of the table.
+            None
         """
         self.database_connector.remove_table(name)
 
-    def _create_table(self, table_name: str, fields: Sequence[str]):
+    def _create_table(self, table_name: str, fields: Sequence[str]) -> None:
         """
-        This creates a products table if the table doesn't exist.
-        """
-        if not self._check_table(table_name):
-            self.database_connector.create_table(table_name, fields)
+        Creates a products table if the table doesn't exist.
 
-    def _update_record(self, key_name: str, new_val: Any):
-        """
-        This updates record in the database.
         Args:
-            key_name: the column in which the value is updated.
-            new_val: new value in the column.
+            table_name(str): the name of the table.
+            fields(Sequence[str]): the fields in the table.
+
+        Returns:
+            None
+        """
+        self.database_connector.create_table(table_name, fields)
+
+    def _update_record(self, key_name: str, new_val: Any) -> None:
+        """
+        Update record in the database.
+
+        Args:
+            key_name(str): the column in which the value is updated.
+            new_val(Any): new value in the column.
+
+        Returns:
+            None
         """
         self.database_connector.update_record_in_table(
             table_name=self._logins_name,
             primary_key_name="username",
-            primary_key_val=self.username,
+            primary_key_val=self._username,
             key_name=key_name,
             new_value=new_val,
         )
 
-    def _save_to_logins_db(self, username: str, password: str, email: str):
+    def _save_to_logins_db(self, username: str, password: str, email: str) -> None:
         """
-        This saves user information to the database.
+        Saves user information to the database.
+
         Args:
-            username: The username required to use the app.
-            password: Users password.
-            email: Users email.
+            username(str): username required to use the app.
+            password(str): users password.
+            email(str): users email.
+
+        Returns:
+            None
         """
         self.database_connector.add_to_table(
             self._logins_name,
@@ -239,11 +252,15 @@ class App:
 
     def register(self, username: str, password: str, email: str) -> None:
         """
-        This lets the user set up a new account in the app.
+        Set up a new account in the app.
+
         Args:
-            username: The username required to use the app.
-            password: Users password.
-            email: Users email.
+            username(str): username required to use the app.
+            password(str): users password.
+            email(str): users email.
+
+        Returns:
+            None
         """
         self.check_password(password)
 
@@ -260,21 +277,48 @@ class App:
         self.database_connector.add_to_table(self._verification_name, [(email, code)])
         self._save_to_logins_db(username, password, email)
 
-    def verify(self, username: str, email: str, code: str):
-        if code == self.database_connector.get_record_from_table(self._verification_name, "email", email)["code"]:
+    def verify(self, username: str, email: str, code: str | int) -> None:
+        """
+        Verify your email in the app.
+
+        Args:
+            username(str): username required to use the app.
+            email(str): users email.
+            code(str | int): code required to verify.
+
+        Raises:
+            ValueError: if the code is wrong.
+
+        Returns:
+            None
+        """
+
+        if str(code) == self.database_connector.get_record_from_table(self._verification_name, "email", email)["code"]:
             self.database_connector.update_record_in_table(self._logins_name, "username", username, "verified", True)
+            logger.info("Your email is now verified.")
+            self.database_connector.remove_from_table(
+                table_name=self._verification_name, column_name="email", value=email
+            )
+
         else:
             raise ValueError(error_base.get("E14"))
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str) -> None:
         """
-        This lets the user log to the application
+        Log to the application.
+
         Args:
-            username: The username required to use the app.
-            password: Users password.
+            username(str): username required to use the app.
+            password(str): users password.
+
         Raises:
-            IncorrectLoginInformation:
-                username or password is wrong.
+            IncorrectLoginInformation: username or password is wrong.
+
+        Warnings:
+            if the email is not verified.
+
+        Returns:
+            None
         """
         tables = self.database_connector.get_table(self._logins_name)
 
@@ -287,56 +331,45 @@ class App:
             raise IncorrectLoginInformation(error_base.get("E13"))
 
         if not self.database_connector.get_record_from_table(self._logins_name, "username", username)["verified"]:
-            logger.warning("You need to verify your email first")
+            logger.warning("You need to verify your email first.")
             return None
 
-        self.username = username
-        self.password = password
-        self.load_user()
+        self._username = username
+        self.load_user(username)
 
-    def load_user(self, user: "User" = None):
+    def load_user(self, username: str) -> None:
         """
-        This lets app user to load their user profile.
+        Load user into the app from database.
+
         Args:
-            user: the user needed to use the app.
-        Warnings:
-            if user hasn't been created.
-        """
+            username(str): username required to use the app.
 
-        if self.user is not None:
-            self.database_connector.add_to_table(
-                self._users_name,
-                [
-                    (
-                        self.username,
-                        self.user.name,
-                        self.user.surname,
-                        self.user.age,
-                        self.user.height,
-                        self.user.weight,
-                        self.user.gender,
-                        None
-                    )
-                ],
+        Returns:
+            None
+        """
+        user_info = self.database_connector.get_record_from_table(
+            table_name=self._users_name, key_name="username", key_val=username
+        )
+
+        if user_info != {}:
+            username = user_info.pop("username")
+
+            dict_dt = self.database_connector.get_record_from_table(
+                table_name=self._daily_target_name, key_name="username", key_val=username
             )
-        elif self.user is None and user is not None:
-            self.database_connector.add_to_table(
-                self._users_name,
-                [
-                    (
-                        self.username,
-                        user.name,
-                        user.surname,
-                        user.age,
-                        user.height,
-                        user.weight,
-                        user.gender,
-                        None
-                    )
-                ],
-            )
+            if dict_dt != {}:
+                dict_dt.pop("username")
+                daily_target = DailyTarget.from_dict(dict_dt)
+                user_info["daily_target"] = daily_target
+            else:
+                logger.info("Please create daily_target with create_daily_target method.")
+
+            logger.info("User is loaded.")
+            user = User.from_dict(user_info)
+            self._user = user
+
         else:
-            logger.info(msg="insufficient information, please create a new user.")
+            logger.info("Please create a new user with create_user method.")
 
     def create_user(
         self,
@@ -347,15 +380,44 @@ class App:
         weight: int,
         gender: str,
         daily_target: DailyTarget = None,
-    ):
+    ) -> None:
+        """
+        Creates a user representation in the app.
+
+        Args:
+            name(str): the name of the user.
+            surname(str): the surname of the user.
+            age(int): the age of the user.
+            height(int): the height of the user.
+            weight(int): the weight of the user.
+            gender(str): the gender of the user.
+            daily_target(DailyTarget): object of class daily_target.
+
+        Returns:
+            None
+        """
         user = User(
             name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
         )
 
-        logger.info(msg="Daily target not provided, please use create_daily_target method to set your daily target.")
+        if not daily_target:
+            logger.info(
+                msg="Daily target not provided, please use create_daily_target method to set your daily target."
+            )
+        else:
+            self.database_connector.add_to_table(
+                self._daily_target_name,
+                [(self._username, daily_target.protein, daily_target.carbs, daily_target.fats, daily_target.kcal)],
+            )
 
-        self.load_user(user)
-        self.user = user
+        self.database_connector.add_to_table(
+            self._users_name,
+            [(self._username, user.name, user.surname, user.age, user.height, user.weight, user.gender)],
+        )
+
+        logger.info(msg="User created successfully.")
+        self._user = user
+        self.days = DaysManager(self._username, self._user)
 
     def create_daily_target(
         self,
@@ -364,46 +426,130 @@ class App:
         carbs: float | None = None,
         fats: float | None = None,
         activity: Literal[1, 2, 3, 4, 5] | None = 3,
-    ):
+    ) -> None:
         """
-        This lets the user create a new daily target.
+        Create a daily target for the user.
+
         Args:
-            kcal: kcal required to create a table.
-            protein: protein required to create a table.
-            carbs: carbs required to create a table.
-            fats: kcal required to create a table.
-            activity: kcal required to set the table.
+            kcal(float): kcal required to create a table.
+            protein(float): protein required to create a table.
+            carbs(float): carbs required to create a table.
+            fats(float): kcal required to create a table.
+            activity(Literal[1,2,3,4,5]): kcal required to set the table.
 
         Warnings:
             if not enough data is given.
 
+        Returns:
+            None
         """
         try:
             if kcal and protein and carbs and fats:
-                self.user.create_daily_target(kcal, protein, carbs, fats)
+                self._user.create_daily_target(kcal, protein, carbs, fats)
             else:
-                self.user.set_daily_target(activity)
-            logger.info(msg="Creating daily target.")
+                self._user.set_daily_target(activity)
+            logger.info(msg="Daily target created successfully.")
+            self.database_connector.add_to_table(
+                self._daily_target_name,
+                [
+                    (
+                        self._username,
+                        self._user.daily_target.protein,
+                        self._user.daily_target.carbs,
+                        self._user.daily_target.fats,
+                        self._user.daily_target.kcal,
+                    )
+                ],
+            )
         except ValueError as e:
             logger.warning("daily target cannot be set due to %s", e)
 
-    def add_day(self):
-        self.days = DaysManager(self.user)
-        self.days.add_day()
+    def add_day(self, date: int) -> None:
+        """
+        Create a new eating_day for the user.
 
-    def add_to_meal(self, index: int, products: list[EatableProduct | Product]):
+        Returns:
+            None
+        """
+        self.days = DaysManager(self._username, self._user)
+        self.days.add_day(date)
+        logger.info("Day added.")
+
+    def add_products_to_meal(self, index: int, products: list[EatableProduct | FastProduct]) -> None:
+        """
+        Add products to meals in the eating_day.
+
+        Args:
+            index(int): the index of the users meal_order.
+            products(list[EatableProduct | FastProduct]): products added to meal.
+
+        Returns:
+            None
+        """
         self.days.add_to_meal(index, products)
+        logger.info("Products added to meal.")
 
-    def show_progres(self, variable: Literal["kcal", "protein", "carbs", "fats"]):
-        print(self.days.show_progres(variable))
+    def add_by_id_to_meal(self, index: int, id_: int, mass: int) -> None:
+        """
+        Add product to meals in the eating_day by its id.
 
-if __name__ == "__main__":
-    app = App()
-    app.register("test", "Ab1@cdefgh", "gmail.com")
-    app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
-    app.create_user("test", "test", 16, 2, 3, "male")
-    app.login("test", "Ab1@cdefgh")
-    app.create_daily_target(activity=3)
-    app.add_day()
-    app.add_to_meal(0, [Product(name="ser", id_=10000, protein=10, carbs=20, fats=20), Product(name="ers", id_=234, protein=23, carbs=34, fats=6)])
-    app.show_progres("protein")
+        Args:
+            index(int): the index of the users meal_order.
+            id_: the products id.
+            mass: the products mass.
+
+        Returns:
+            None
+        """
+        product = self.id_base_manager.get_product_by_id(id_)
+        e_product = EatableProduct(mass, product)
+        self.days.add_to_meal(index, [e_product])
+        logger.info("Product added to meal.")
+
+    def add_by_name_to_meal(self, index: int, name: str, mass: int) -> None:
+        """
+        Add product to meals in the eating_day by its name.
+
+        Args:
+            index(int): the index of the users meal_order.
+            name: the products name.
+            mass: the products mass.
+
+        Returns:
+            None
+        """
+        product = self.id_base_manager.get_product_by_name(name)
+        e_product = EatableProduct(mass, product)
+        self.days.add_to_meal(index, [e_product])
+        logger.info("Product added to meal.")
+
+    def show_progress(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> float | None:
+        """
+        Get progress bar.
+
+        Args:
+            variable(Literal["kcal", "protein", "carbs", "fats"] | None): variable you use to see the progress bar.
+
+        Returns:
+            the actual progress from the variable or None.
+        """
+        if self.days is None:
+            logger.warning("You need to create a day before getting progress.")
+
+        else:
+            if variable:
+                print(self.days.show_progress(variable)[0])
+                return self.days.show_progress(variable)[1]
+            else:
+                [print(self.days.show_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
+
+    def save_day(self, date: int):
+        """
+        Save the day to sql database.
+        Args:
+            date(int): the representation of the date yy:mm:dd
+
+        Returns:
+            None
+        """
+        self.days.save_to_database(date)

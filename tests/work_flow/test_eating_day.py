@@ -1,10 +1,7 @@
-import json
-
 from datetime import datetime
-from pathlib import Path
 from pytest import fixture, raises
 
-from nutrition_app.models.product import EatableProduct, Product
+from nutrition_app.models.product import Product, EatableProduct
 from nutrition_app.work_flow.eating_day import Day
 from nutrition_app.user.user import User
 from nutrition_app.user.daily_target import DailyTarget
@@ -48,10 +45,6 @@ def day():
 
 
 class TestDay:
-
-    def test_repr(self, day):
-        assert f"{day.__class__.__name__}(user={day.user})" == day.__repr__()
-
     def test_eq_true(self, day):
         target = DailyTarget()
         target.set_daily_target(weight=70, height=170, activity=3, age=18, gender="male")
@@ -110,53 +103,41 @@ class TestDay:
         assert len(day.meals["breakfast"].products) == previous - 1
 
     def test_kcal_progres(self, day):
-        assert day.kcal_progres == round(170 / day.user.daily_target.kcal * 100)
+        assert day.kcal_progress["percentage"] == round(170 / day.user.daily_target.kcal * 100)
 
     def test_protein_progres(self, day):
-        assert day.protein_progres == round(10 / day.user.daily_target.protein * 100)
+        assert day.protein_progress["percentage"] == round(10 / day.user.daily_target.protein * 100)
 
     def test_carbs_progres(self, day):
-        assert day.carbs_progres == round(10 / day.user.daily_target.carbs * 100)
+        assert day.carbs_progress["percentage"] == round(10 / day.user.daily_target.carbs * 100)
 
     def test_fats_progres(self, day):
-        assert day.fats_progres == round(10 / day.user.daily_target.fats * 100)
+        assert day.fats_progress["percentage"] == round(10 / day.user.daily_target.fats * 100)
 
     def test_get_progres_bar_kcal_progres(self, day):
-        day.kcal_progres
-        full = round(day.progres["kcal"] / 5)
+        day.kcal_progress
+        full = round(day.progress["kcal"] / 5)
         less = 20 - full
-        assert day.print_progres_bar(variable="kcal") == [
-            int(full) * "▰" + int(less) * "▱",
-            f"{day.progres['kcal']}%",
-        ]
+        assert day.get_progress_bar(variable="kcal")[0] == "kcal\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 170.0 / 2700.0, progress: 6%"
 
     def test_get_progres_bar_protein_progres(self, day):
-        day.protein_progres
-        full = round(day.progres["protein"] / 5)
+        day.protein_progress
+        full = round(day.progress["protein"] / 5)
         less = 20 - full
-        assert day.print_progres_bar(variable="protein") == [
-            int(full) * "▰" + int(less) * "▱",
-            f"{day.progres['protein']}%",
-        ]
+        assert day.get_progress_bar(variable="protein")[0] == "protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135.0, progress: 7%"
 
     def test_get_progres_bar_carbs_progres(self, day):
-        day.carbs_progres
-        full = round(day.progres["carbs"] / 5)
+        day.carbs_progress
+        full = round(day.progress["carbs"] / 5)
         less = 20 - full
-        assert day.print_progres_bar(variable="carbs") == [
-            int(full) * "▰" + int(less) * "▱",
-            f"{day.progres['carbs']}%",
-        ]
+        assert day.get_progress_bar(variable="carbs")[0] == "carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 337.5, progress: 3%"
 
     def test_get_progres_bar_fats_progres(self, day):
-        day.fats_progres
-        full = round(day.progres["fats"] / 5)
+        day.fats_progress
+        full = round(day.progress["fats"] / 5)
         less = 20 - full
-        assert day.print_progres_bar(variable="fats") == [
-            int(full) * "▰" + int(less) * "▱",
-            f"{day.progres['fats']}%",
-        ]
+        assert day.get_progress_bar(variable="fats")[0] == "fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90.0, progress: 11%"
 
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):
-            day.print_progres_bar(variable="error")
+            day.get_progress_bar(variable="error")

@@ -6,11 +6,11 @@ class FastProduct:
     This class makes an object similar to the Product, but this one has less arguments so that it could be made easily.
 
     Attributes:
-      name: This is the name of the product
-      kcal: This is the number of calories that the product has
-      protein: This is the number of proteins that the product has
-      carbs: This is the number of carbs that the product has
-      fats: This is the number of fats that the product has
+      name(str): This is the name of the product.
+      kcal(float): This is the number of calories that the product has.
+      protein(float): This is the number of proteins that the product has.
+      carbs(float): This is the number of carbs that the product has.
+      fats(float): This is the number of fats that the product has.
     """
 
     kcal = NumericalAttribute()
@@ -24,3 +24,6 @@ class FastProduct:
         self.protein = protein
         self.carbs = carbs
         self.fats = fats
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name={self.name}, kcal={self.kcal}, protein={self.protein}, carbs={self.carbs}, fats={self.fats})"

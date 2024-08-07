@@ -5,3 +5,5 @@ build
 nutrition_app.egg-info
 .coverage
 .env
+
+.ipynb_checkpoints

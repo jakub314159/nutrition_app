@@ -1,5 +1,4 @@
 class NumericalAttribute:
-
     def __set_name__(self, owner, name):
         self.storage_name = name
 

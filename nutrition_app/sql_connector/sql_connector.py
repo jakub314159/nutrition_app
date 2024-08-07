@@ -25,6 +25,8 @@ class SQLConnector:
             table_name(str): name of the table to be created in the database.
             fields(Sequence[str]): names of the fields in the table.
 
+        Returns:
+            None
         """
         # let first element be the primary key by default
         connection = sqlite3.connect(str(self._database_path))
@@ -41,6 +43,9 @@ class SQLConnector:
 
         Args:
             table_name(str): table to be removed from the database.
+
+        Returns:
+            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -71,6 +76,9 @@ class SQLConnector:
             table_name(str): name of the table to which records will be added.
             records(list[tuple]): records to be added.
                 Example: [(field_1_value, field_2_value, ...), ...]
+
+        Returns:
+            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -102,7 +110,7 @@ class SQLConnector:
         res = cursor.execute(query, [key_val])
         tuple_res = res.fetchone()
         keys = [desc[0] for desc in res.description]
-        res_dict = {k: v for k, v in zip(keys, tuple_res)}
+        res_dict = {k: v for k, v in zip(keys, tuple_res)} if tuple_res else {}
         connection.close()
         return res_dict
 
@@ -145,6 +153,8 @@ class SQLConnector:
             key_name(str): the column to be updated.
             new_value(Any): the new value to be set.
 
+        Returns:
+            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
@@ -162,6 +172,9 @@ class SQLConnector:
             table_name (str): name of the table from which records will be removed.
             column_name (str): name of the column to use in the condition.
             value (any): value to match for the condition.
+
+        Returns:
+            None
         """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()

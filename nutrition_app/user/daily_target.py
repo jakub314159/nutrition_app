@@ -1,4 +1,4 @@
-from typing import Literal, Any
+from typing import Literal
 
 from nutrition_app.constants import ACTIVITY_COEFFICIENTS, Gender
 from nutrition_app.error_station import error_base
@@ -15,13 +15,19 @@ class DailyTarget:
     This class lets you set or create a target for the user.
 
     Attributes:
-        protein: the ammount od protein
-        carbs: the ammount od carbs
-        fats: the ammount od fats
-        kcal: the ammount od kcal
+        protein(float): the amount od protein
+        carbs(float): the amount od carbs
+        fats(float): the amount od fats
+        kcal(float): the amount od kcal
     """
 
-    def __init__(self, protein=None, carbs=None, fats=None, kcal=None):
+    def __init__(
+        self,
+        protein: float | None = None,
+        carbs: float | None = None,
+        fats: float | None = None,
+        kcal: float | None = None,
+    ):
         self._validate_macro(protein, carbs, fats, kcal)
         self.protein = protein
         self.carbs = carbs
@@ -44,22 +50,38 @@ class DailyTarget:
         return False
 
     @staticmethod
-    def _validate_macro(protein, carbs, fats, kcal):
+    def _validate_macro(protein, carbs, fats, kcal) -> None:
+        """
+        This validates if the macro input is correct.
+
+        Args:
+            protein(float): the amount od protein
+            carbs(float): the amount od carbs
+            fats(float): the amount od fats
+            kcal(float): the amount od kcal
+
+        Returns:
+            None
+        """
         if protein or carbs or fats or kcal:
             if not round(protein * 4 + carbs * 4 + fats * 9) == round(kcal):
                 raise IncorrectMacroError(error_base.get("E5"))
 
     def create_daily_target(self, kcal: float, protein: float, carbs: float, fats: float) -> None:
         """
-        This lets you create a daily target.
+        Create a daily target.
 
         Args:
-            kcal: the amount of calories.
-            protein: the amount of protein.
-            carbs: the amount of carbs.
-            fats: the amount of fats.
+            kcal(float): the amount of calories.
+            protein(float): the amount of protein.
+            carbs(float): the amount of carbs.
+            fats(float): the amount of fats.
+
         Raises:
-            IncorrectMacroError (super class of ValueError): if the usser input is wrong.
+            IncorrectMacroError(ValueError): if the user input is wrong.
+
+        Returns:
+            None
         """
         self._validate_macro(protein, carbs, fats, kcal)
 
@@ -78,14 +100,19 @@ class DailyTarget:
     ) -> None:
         """
         This lets you set a daily target.
+
         Args:
-            weight: the users weight.
-            height: the users height.
-            activity: the users level of activity reaching from 1 (the lowest) to 5 (the highest).
-            age: users age.
-            gender: users gender (male or female).
+            weight(float): the users weight.
+            height(float): the users height.
+            activity(Literal[1, 2, 3, 4, 5]): the users level of activity reaching from 1 (the lowest) to 5 (the highest).
+            age(float): users age.
+            gender(Literal["male", "female"] | str): users gender (male or female).
+
         Raises:
             ValueError: when activity doesn't belong into 1 - 5 range and when gender is not male or female.
+
+        Returns:
+            None
         """
 
         if activity not in ACTIVITY_COEFFICIENTS:
@@ -100,22 +127,26 @@ class DailyTarget:
 
         self.kcal = round(bmr * ACTIVITY_COEFFICIENTS[activity], -1)
 
-        self.protein = self.kcal * 0.20 / 4
-        self.carbs = self.kcal * 0.50 / 4
-        self.fats = self.kcal * 0.30 / 9
+        self.protein = round(self.kcal * 0.20 / 4, 2)
+        self.carbs = round(self.kcal * 0.50 / 4, 2)
+        self.fats = round(self.kcal * 0.30 / 9, 2)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
-        Returns: The daily target dict.
+        Returns:
+            dict: daily target dict.
         """
         return self.__dict__
 
     @classmethod
-    def from_dict(cls, dict) -> "DailyTarget":
+    def from_dict(cls, daily_target_dict: dict[str]) -> "DailyTarget":
         """
-        Args:
-            dict: the dict from wchih the new object will be created.
+        Creates a DailyTarget object from dict.
 
-        Returns: a new object from the class DailyTarget.
+        Args:
+            daily_target_dict (dict[str]): the dict from which the new object will be created.
+
+        Returns:
+            DailyTarget: new object from the class DailyTarget.
         """
-        return cls(**dict)
+        return cls(**daily_target_dict)

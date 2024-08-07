@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from pytest import fixture, raises
 from base64 import b64encode
@@ -11,8 +10,8 @@ from nutrition_app.app.application import (
     WrongMadePasswordError,
     IncorrectLoginInformation,
 )
-from nutrition_app.user.daily_target import DailyTarget
-from nutrition_app.sql_connector import SQLConnector
+from nutrition_app.work_flow.eating_day import Day
+
 from tests.mocked_connector import MockedConnector
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "test_db" / "test_login_base.json"
@@ -75,21 +74,18 @@ class TestApp:
         password = app.automatic_password()
         app.check_password(password)
 
-    def test_check_table(self, app):
-        val = app._check_table(app._logins_name)
-        assert val == True
-
     def test_delete_table(self, app):
-        app._logins_name = "test"
-        app.database_connector.create_table("test", (1, 2, 3))
-        app._delete_table("test")
+        with raises(expected_exception=KeyError):
+            app._logins_name = "test"
+            app.database_connector.create_table("test", (1, 2, 3))
+            app._delete_table("test")
 
-        assert app._check_table("test") == False
+            app.database_connector.get_table("test")
 
     def test_create_products_table(self, app):
         app._create_table(app._logins_name, ("1", "2", "3"))
-        val = app._check_table(app._logins_name)
-        assert val == True
+        val = app.database_connector.get_table(app._logins_name)
+        assert val == {"1": [], "2": [], "3": []}
 
     def test_update_record(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
@@ -158,14 +154,22 @@ class TestApp:
         app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
         app.login("test", "Ab1@cdefgh")
 
-        assert app.username == "test"
+        assert app._username == "test"
+
+    def test_load_user(self, app):
+        app.database_connector.create_table(
+            app._users_name, ("username", "name", "surname", "age", "height", "weight", "gender")
+        )
+        app.database_connector.add_to_table(app._users_name, [("test1", "name", "surname", 18, 180, 70, "male")])
+        app.load_user("test1")
+        assert app._user.name == "name"
 
     def test_create_user(self, app):
         app.database_connector.create_table("logins", ("username", "password", "email", "verified"))
         app.register("test", "Ab1@cdefgh", "gmail.com")
         app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
-        app.create_user("test", "test", 16, 2, 3, "male")
         app.login("test", "Ab1@cdefgh")
+        app.create_user("test", "test", 16, 2, 3, "male")
 
         record = app.database_connector.get_record_from_table(app._users_name, "username", "test")
         assert record["name"] == "test" and record["age"] == 16 and record["height"] == 200 and record["weight"] == 3
@@ -174,11 +178,24 @@ class TestApp:
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(kcal=340, protein=20, fats=20, carbs=20)
 
-        assert app.user.daily_target.kcal == 340
+        assert app._user.daily_target.kcal == 340
 
     def test_set_new_daily_target(self, app):
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(activity=3)
 
-        assert app.user.daily_target.kcal == 1550
+        assert app._user.daily_target.kcal == 1550
 
+    def test_add_day(self, app):
+        app.create_user("test", "test", 16, 2, 3, "male")
+        app.create_daily_target(activity=3)
+        app.add_day(240101)
+        assert len(app.days.days) == 1 and isinstance(app.days.days[0], Day)
+
+    def test_add_to_meal(self, app):
+        pass
+
+    # def test_logger_warning(self, caplog, app):
+    #     ...
+    #
+    #     assert "mój string" in caplog.text
