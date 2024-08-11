@@ -32,7 +32,7 @@ def day():
         daily_target=target,
     )
     day = Day(user=user)
-    day.add_to_meal(
+    day.add_products_to_meal(
         meal_index=0,
         products=[
             EatableProduct(
@@ -84,7 +84,7 @@ class TestDay:
 
     def test_add_to_meal(self, day):
         previous = len(day.meals["breakfast"].products)
-        day.add_to_meal(
+        day.add_products_to_meal(
             meal_index=0,
             products=[
                 EatableProduct(
@@ -98,7 +98,7 @@ class TestDay:
 
     def test_delete_from_meal(self, day):
         previous = len(day.meals["breakfast"].products)
-        day.delete_from_meal(0, 0)
+        day.delete_product_from_meal(0, 0)
 
         assert len(day.meals["breakfast"].products) == previous - 1
 

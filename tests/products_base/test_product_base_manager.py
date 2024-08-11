@@ -10,7 +10,7 @@ def manager():
     manager = ProductsManager()
     manager.connector = MockedConnector()
     manager.connector.create_table(table_name="id_base", fields=("id", "name", "protein", "carbs", "fats", "kcal"))
-    manager.add_product(Product("ser", 0, 10, 10, 10, 120))
+    manager.add_product(Product("Ser", 0, 10, 10, 10, 120))
     return manager
 
 
@@ -29,14 +29,14 @@ class TestProductsManager:
 
     def test_add_product(self, manager):
         table = manager.connector.get_table("id_base")
-        assert "ser" in table["name"]
+        assert "Ser" in table["name"]
 
     def test_get_product_by_id(self, manager):
         product = manager.get_product_by_id(0)
 
-        assert product == Product("ser", 0, 10, 10, 10, 120)
+        assert product == Product("Ser", 0, 10, 10, 10, 120)
 
     def test_get_product_by_name(self, manager):
         product = manager.get_product_by_name("ser")
 
-        assert product == Product("ser", 0, 10, 10, 10, 120)
+        assert product == Product("Ser", 0, 10, 10, 10, 120)

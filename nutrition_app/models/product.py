@@ -7,7 +7,7 @@ class Product:
     This is the blueprint to the Product.
 
     Attributes:
-        PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be storen.
+        PRODUCTS_DIR: an argument not inside the __init__ that holds the place in which the json representation files of this class will be stored.
         name(str): the name of the product.
         id_(int): the id of the product.
         protein(float): the amount of protein in the product.

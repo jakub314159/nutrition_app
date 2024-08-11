@@ -53,10 +53,10 @@ class Day:
     @staticmethod
     def set_date() -> int:
         """
-        Set the date in which the user eats.
+        Get date of the Day.
 
         Returns:
-            int: calender date and the weekday.
+            int: the yy:mm:dd representation of the date.
         """
         now = datetime.now()
         return now.strftime("%y%m%d")
@@ -77,7 +77,7 @@ class Day:
         if meal_index >= len(self.meal_order):
             raise ValueError(error_base.get("E10").format(len(self.meal_order) - 1))
 
-    def add_to_meal(self, meal_index: int, products: Sequence[EatableProduct | FastProduct]) -> None:
+    def add_products_to_meal(self, meal_index: int, products: Sequence[EatableProduct | FastProduct]) -> None:
         """
         This lets the user add a list of EatableProducts and / or FastProducts.
 
@@ -92,7 +92,7 @@ class Day:
         for product in products:
             self.meals[self.meal_order[meal_index]].add_product(product)
 
-    def delete_from_meal(self, meal_index: int, product_index: int) -> None:
+    def delete_product_from_meal(self, meal_index: int, product_index: int) -> None:
         """
         Delete a product from the meal.
 
@@ -112,7 +112,11 @@ class Day:
 
         self.progress["kcal"] = round(actual / self.daily_target.kcal * 100)
 
-        return {"percentage": self.progress["kcal"], "actual": round(actual, 1), "target": self.daily_target.kcal}
+        return {
+            "percentage": self.progress["kcal"],
+            "actual": round(actual, 1),
+            "target": round(self.daily_target.kcal, 1),
+        }
 
     @property
     def protein_progress(self) -> ProgressDict:
@@ -120,7 +124,11 @@ class Day:
 
         self.progress["protein"] = round(actual / self.daily_target.protein * 100)
 
-        return {"percentage": self.progress["protein"], "actual": round(actual, 1), "target": self.daily_target.protein}
+        return {
+            "percentage": self.progress["protein"],
+            "actual": round(actual, 1),
+            "target": round(self.daily_target.protein, 1),
+        }
 
     @property
     def carbs_progress(self) -> ProgressDict:
@@ -128,7 +136,11 @@ class Day:
 
         self.progress["carbs"] = round(actual / self.daily_target.carbs * 100)
 
-        return {"percentage": self.progress["carbs"], "actual": round(actual, 1), "target": self.daily_target.carbs}
+        return {
+            "percentage": self.progress["carbs"],
+            "actual": round(actual, 1),
+            "target": round(self.daily_target.carbs, 1),
+        }
 
     @property
     def fats_progress(self) -> ProgressDict:
@@ -136,19 +148,21 @@ class Day:
 
         self.progress["fats"] = round(actual / self.daily_target.fats * 100)
 
-        return {"percentage": self.progress["fats"], "actual": round(actual, 1), "target": self.daily_target.fats}
+        return {
+            "percentage": self.progress["fats"],
+            "actual": round(actual, 1),
+            "target": round(self.daily_target.fats, 1),
+        }
 
-    def get_progress_bar(
-        self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None
-    ) -> list[str | float]:
+    def get_progress_bar(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> list[str, float]:
         """
-        List progres for the user.
+        Get progress bar containing the amount of micronutrient consumed, users target and the progress percentage.
 
         Args:
             variable (Literal["kcal", "protein", "carbs", "fats"] | None): the nutrient on which the progres will be checked.
 
         Returns:
-            list[str | float]: list containing the progres bar and the percentage.
+            list[str, float]: list containing the progres bar and the percentage.
         """
         match variable:
             case "kcal":
@@ -163,18 +177,34 @@ class Day:
                 raise ValueError(error_base.get("E9").format(variable))
 
         full = round(local_progress["percentage"] / 5)
-        less = 20 - full
-        return [
-            f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
-            local_progress["actual"],
-        ]
 
-    def to_tuple(self):
+        if full >= 20:
+            intake_info = f'overeaten_kcal: {local_progress["actual"] - local_progress["target"]}'
+            if full == 20:
+                intake_info = "progress: 100%"
+            return [
+                f"{variable}\t{20 * '▰'} {local_progress['actual']} / {local_progress['target']}, {intake_info}",
+                local_progress["actual"],
+            ]
+        else:
+            less = 20 - full
+            return [
+                f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
+                local_progress["actual"],
+            ]
+
+    def to_tuple(self) -> tuple[float]:
+        """
+        Get a tuple containing consumed micronutrients and the days target.
+
+        Returns:
+            tuple[float]: all micronutrients eaten and the target.
+        """
         return (
-            self.progress["kcal"],
-            self.progress["protein"],
-            self.progress["carbs"],
-            self.progress["fats"],
+            self.kcal_progress["actual"],
+            self.protein_progress["actual"],
+            self.carbs_progress["actual"],
+            self.fats_progress["actual"],
             self.daily_target.kcal,
             self.daily_target.protein,
             self.daily_target.carbs,
