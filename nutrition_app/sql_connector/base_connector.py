@@ -70,6 +70,20 @@ class BaseConnector(ABC):
         """
 
     @abstractmethod
+    def get_days(self, table_name: str, username_val: str, date_val: int) -> list[dict]:
+        """
+        Method used to get a list of days displayed via dicts for a certain username and from a certain date.
+
+        Args:
+            table_name (str): name of the database table.
+            username_val (str): username of the user.
+            date_val (int): date from which all saved days will be returned.
+
+        Returns:
+            list[dict[str, int]]: list of days represented by dicts.
+        """
+
+    @abstractmethod
     def get_table(self, table_name: str) -> dict[str, Any]:
         """
         Get full table as dict.

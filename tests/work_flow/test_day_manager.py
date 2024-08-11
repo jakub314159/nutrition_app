@@ -5,7 +5,7 @@ from nutrition_app.models.product import EatableProduct
 from nutrition_app.models.product import Product
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
-from nutrition_app.work_flow.days_manager import DaysManager
+from nutrition_app.work_flow.days_manager import DaysManager, DaysConnector
 from nutrition_app.work_flow.eating_day import Day
 from tests.mocked_connector import MockedConnector
 
@@ -19,6 +19,15 @@ def manager():
     )
 
     return manager
+
+
+class TestDaysConnector:
+    def test_get_days(self):
+        connector = MockedConnector()
+        connector.create_table(table_name="test", fields=["username", "date"])
+        connector.add_to_table(table_name="test", records=[("user1", 240101), ("user1", 240102), ("user2", 240103)])
+        days_saved = connector.get_days(table_name="test", username_val="user1", date_val=240101)
+        assert days_saved == [{"date": 240101, "username": "user1"}, {"date": 240102, "username": "user1"}]
 
 
 class TestDayManager:
@@ -44,7 +53,7 @@ class TestDayManager:
     def test_show_progress(self, manager):
         manager.add_day(240101)
         manager.add_to_meal(0, [EatableProduct(product=Product("ser", 0, 10, 10, 10, 120), mass=100)])
-        eaten = manager.show_progress("kcal")
+        eaten = manager.get_progress("kcal")
 
         assert eaten[1] == 120
 

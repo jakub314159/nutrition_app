@@ -8,7 +8,7 @@ class Meal:
     Meal is a class, that hold a list o products (class EatableProduct or FastProduct) and it's variables (for example: name, protein, carbs, fats and kcal).
 
     Attributes:
-        products(list[EatableProduct | FastProduct]): list that holds items from class EatableProduct, FastProduct or an empty list if products are not provided.
+        products(list[EatableProduct | FastProduct] | None): list that holds items from class EatableProduct, FastProduct or an empty list if products are not provided.
     """
 
     def __init__(self, products: list[EatableProduct | FastProduct] | None = None):

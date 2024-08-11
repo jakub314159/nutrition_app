@@ -14,6 +14,7 @@ from nutrition_app.user.user import User
 from nutrition_app.email_sender.email_sender import Sender
 from nutrition_app.work_flow.days_manager import DaysManager
 from nutrition_app.products_base.products_base_manager import ProductsManager
+from tests.mocked_connector import MockedConnector
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "user_base" / "user_base.json"
@@ -98,7 +99,7 @@ class App:
         self._user: User | None = None
         self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
         logger.info(f"creating database {self.DATABASE_DIR}")
-        self.days: DaysManager | None = None
+        self.days_manager: DaysManager | MockedConnector | None = None
         self.id_base_manager = ProductsManager()
 
         self._create_table(self._logins_name, ("username", "password", "email", "verified"))
@@ -108,20 +109,6 @@ class App:
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
-
-    def delete_account(self, table_name: str, primary_column: str, primary_value: Any) -> None:
-        """
-        Delete your account.
-
-        Args:
-            table_name(str): the name of the table from which you delete an account.
-            primary_column(str): the main column name.
-            primary_value(Any): the main column value.
-
-        Returns:
-            None
-        """
-        self.database_connector.remove_from_table(table_name, primary_column, primary_value)
 
     @staticmethod
     def check_password(password: str) -> str:
@@ -181,18 +168,6 @@ class App:
         shuffle(x=sum_list)
 
         return "".join(sum_list)
-
-    def _delete_table(self, name: str) -> None:
-        """
-        Deletes the products table.
-
-        Args:
-            name(str): The name of the table.
-
-        Returns:
-            None
-        """
-        self.database_connector.remove_table(name)
 
     def _create_table(self, table_name: str, fields: Sequence[str]) -> None:
         """
@@ -367,6 +342,9 @@ class App:
             logger.info("User is loaded.")
             user = User.from_dict(user_info)
             self._user = user
+            if self.database_connector == MockedConnector():
+                self.days_manager = DaysManager(username=username, user=self._user, connector=MockedConnector())
+            self.days_manager = DaysManager(username=username, user=self._user)
 
         else:
             logger.info("Please create a new user with create_user method.")
@@ -417,7 +395,9 @@ class App:
 
         logger.info(msg="User created successfully.")
         self._user = user
-        self.days = DaysManager(self._username, self._user)
+        if self.database_connector == MockedConnector():
+            self.days_manager = DaysManager(username=self._username, user=self._user, connector=MockedConnector())
+        self.days_manager = DaysManager(username=self._username, user=self._user)
 
     def create_daily_target(
         self,
@@ -471,8 +451,7 @@ class App:
         Returns:
             None
         """
-        self.days = DaysManager(self._username, self._user)
-        self.days.add_day(date)
+        self.days_manager.add_day(date)
         logger.info("Day added.")
 
     def add_products_to_meal(self, index: int, products: list[EatableProduct | FastProduct]) -> None:
@@ -486,10 +465,10 @@ class App:
         Returns:
             None
         """
-        self.days.add_to_meal(index, products)
+        self.days_manager.add_to_meal(index, products)
         logger.info("Products added to meal.")
 
-    def add_by_id_to_meal(self, index: int, id_: int, mass: int) -> None:
+    def add_product_by_id_to_meal(self, index: int, id_: int, mass: int) -> None:
         """
         Add product to meals in the eating_day by its id.
 
@@ -503,10 +482,10 @@ class App:
         """
         product = self.id_base_manager.get_product_by_id(id_)
         e_product = EatableProduct(mass, product)
-        self.days.add_to_meal(index, [e_product])
+        self.days_manager.add_to_meal(index, [e_product])
         logger.info("Product added to meal.")
 
-    def add_by_name_to_meal(self, index: int, name: str, mass: int) -> None:
+    def add_product_by_name_to_meal(self, index: int, name: str, mass: int) -> None:
         """
         Add product to meals in the eating_day by its name.
 
@@ -520,36 +499,37 @@ class App:
         """
         product = self.id_base_manager.get_product_by_name(name)
         e_product = EatableProduct(mass, product)
-        self.days.add_to_meal(index, [e_product])
+        self.days_manager.add_to_meal(index, [e_product])
         logger.info("Product added to meal.")
 
-    def show_progress(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> float | None:
+    def get_progress(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> float | None:
         """
-        Get progress bar.
+        Get progress bar containing the amount of micronutrient consumed, users target and the progress percentage.
 
         Args:
             variable(Literal["kcal", "protein", "carbs", "fats"] | None): variable you use to see the progress bar.
 
         Returns:
-            the actual progress from the variable or None.
+            float | None: if the user chooses one variable it returns the amount of micronutrient consumed.
         """
-        if self.days is None:
+        if self.days_manager is None:
             logger.warning("You need to create a day before getting progress.")
 
         else:
             if variable:
-                print(self.days.show_progress(variable)[0])
-                return self.days.show_progress(variable)[1]
+                print(self.days_manager.get_progress(variable)[0])
+                return self.days_manager.get_progress(variable)[1]
             else:
-                [print(self.days.show_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
+                [print(self.days_manager.get_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
 
-    def save_day(self, date: int):
+    def save_day(self, date: int) -> None:
         """
-        Save the day to sql database.
+        Save any day to sql database.
+
         Args:
-            date(int): the representation of the date yy:mm:dd
+            date(int): the yy:mm:dd representation of the date.
 
         Returns:
             None
         """
-        self.days.save_to_database(date)
+        self.days_manager.save_to_database(date)

@@ -11,11 +11,26 @@ from nutrition_app.work_flow.eating_day import Day
 
 
 class DaysConnector(SQLConnector):
-    def get_days(self, table_name: str, username_val, date_val):
+    """
+    Superclass of SQLConnector that appends it with one method.
+    """
+
+    def get_days(self, table_name: str, username_val, date_val) -> list[dict[str, int]]:
+        """
+        Method used to get a list of days displayed via dicts for a certain username and from a certain date.
+
+        Args:
+            table_name (str): name of the database table.
+            username_val (str): username of the user.
+            date_val (int): date from which all saved days will be returned.
+
+        Returns:
+            list[dict[str, int]]: list of days represented by dicts.
+        """
         connection = sqlite3.connect(str(self._database_path))
         cursor = connection.cursor()
 
-        query = f"SELECT * FROM {table_name} WHERE username = {username_val} AND date >= {date_val}"
+        query = f"SELECT * FROM {table_name} WHERE username = '{username_val}' AND date >= {date_val}"
 
         res = cursor.execute(query)
         many = res.fetchall()
@@ -81,7 +96,10 @@ class DaysManager:
 
     def add_day(self, date: int) -> None:
         """
-        Add a new day to self.days
+        Add a day to self.days
+
+        Args:
+            date(int): date of the day.
 
         Returns:
             None
@@ -103,9 +121,9 @@ class DaysManager:
         for product in products:
             self.days[-1].meals[self.meal_order[index]].add_product(product)
 
-    def show_progress(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> list[str | float]:
+    def get_progress(self, variable: Literal["kcal", "protein", "carbs", "fats"] | None = None) -> list[str | float]:
         """
-        This shows user the progress from the day.
+        Get progress bar containing the amount of micronutrient consumed, users target and the progress percentage.
 
         Args:
             variable (Literal["kcal", "protein", "carbs", "fats"] | None): needed to get progress.
@@ -115,9 +133,10 @@ class DaysManager:
         """
         return self.days[-1].get_progress_bar(variable)
 
-    def save_to_database(self, date: int | None = None):
+    def save_to_database(self, date: int | None = None) -> None:
         """
-        Save the Day to database.
+        Save a Day to database.
+
         Args:
             date(int): the representation of the date yy:mm:dd
 
@@ -130,14 +149,15 @@ class DaysManager:
         day_info = day.to_tuple()
         self.connector.add_to_table(self.name, [(_id, self.username, date, *day_info)])
 
-    def from_database(self, start_date: int):
+    def from_database(self, start_date: int) -> list[Day]:
         """
-        Get day from database.
+        Get a list of Days from database.
+
         Args:
             start_date(int): the representation of the date yy:mm:dd from which the days start.
 
         Returns:
-            Day
+            list[Day]: list of day objects.
         """
         records = self.connector.get_days(self.name, self.username, start_date)
 
