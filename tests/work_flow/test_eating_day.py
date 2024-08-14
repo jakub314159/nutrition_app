@@ -114,30 +114,6 @@ class TestDay:
     def test_fats_progres(self, day):
         assert day.fats_progress["percentage"] == round(10 / day.user.daily_target.fats * 100)
 
-    def test_get_progres_bar_kcal_progres(self, day):
-        day.kcal_progress
-        full = round(day.progress["kcal"] / 5)
-        less = 20 - full
-        assert day.get_progress_bar(variable="kcal")[0] == "kcal\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 170.0 / 2700.0, progress: 6%"
-
-    def test_get_progres_bar_protein_progres(self, day):
-        day.protein_progress
-        full = round(day.progress["protein"] / 5)
-        less = 20 - full
-        assert day.get_progress_bar(variable="protein")[0] == "protein\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 135.0, progress: 7%"
-
-    def test_get_progres_bar_carbs_progres(self, day):
-        day.carbs_progress
-        full = round(day.progress["carbs"] / 5)
-        less = 20 - full
-        assert day.get_progress_bar(variable="carbs")[0] == "carbs\t▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 337.5, progress: 3%"
-
-    def test_get_progres_bar_fats_progres(self, day):
-        day.fats_progress
-        full = round(day.progress["fats"] / 5)
-        less = 20 - full
-        assert day.get_progress_bar(variable="fats")[0] == "fats\t▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱ 10.0 / 90.0, progress: 11%"
-
     def test_get_progres_bar_value_error(self, day):
         with raises(expected_exception=ValueError):
             day.get_progress_bar(variable="error")

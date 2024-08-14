@@ -11,12 +11,12 @@ from nutrition_app.app.application import (
     EmailTakenError,
     WrongMadePasswordError,
     IncorrectLoginInformation,
+    IncorrectUsername
 )
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.user.daily_target import DailyTarget
 from nutrition_app.user.user import User
 from nutrition_app.work_flow.days_manager import DaysManager
-from nutrition_app.work_flow.eating_day import Day
 
 from tests.mocked_connector import MockedConnector
 
@@ -29,7 +29,7 @@ LOGIN_SQL_PATH = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_
 
 @fixture()
 def app():
-    app = App(database_connector=MockedConnector())
+    app = App(database_connector=MockedConnector(), days_manager=MockedConnector())
     app.DATABASE_DIR = Path(__file__).parent.parent / "test_db" / "test_nutrition_app_database.db"
     return app
 
@@ -131,7 +131,7 @@ class TestApp:
         assert "Your email is now verified." in caplog.text
 
     def test_login_incorrect_username(self, app):
-        with raises(expected_exception=IncorrectLoginInformation):
+        with raises(expected_exception=IncorrectUsername):
             app.register("test", "Ab1@cdefgh", "gmail.com")
             app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
             app.login("test1", "Ab1@cdefgh")
@@ -198,9 +198,7 @@ class TestApp:
         assert app._user.daily_target.kcal == 1550
 
     def test_adding_to_meals_functionality(self, app):
-        app.create_user(
-            "test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)
-        )
+        app.days_manager = DaysManager("test", User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)), MockedConnector())
         app.add_day(240101)
         app.add_products_to_meal(
             index=0, products=[FastProduct(name="ser", protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)]
@@ -216,8 +214,10 @@ class TestApp:
         assert "You need to create a day before getting progress." in caplog.text
 
     def test_app_get_progresses(self, app):
-        app.create_user(
-            "test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)
+        app.days_manager = DaysManager(
+            "test",
+            User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)),
+            MockedConnector(),
         )
         app.add_day(240101)
         app.add_products_to_meal(
@@ -227,13 +227,8 @@ class TestApp:
         app.get_progress()
 
     def test_save_day(self, app):
+        app.days_manager = DaysManager("test", User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)), MockedConnector())
         date = 240101
-        app.register("test", "Ab1@cdefgh", "gmail.com")
-        app.database_connector.update_record_in_table("logins", "username", "test", "verified", True)
-        app.login("test", "Ab1@cdefgh")
-        app.create_user(
-            "test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)
-        )
         app.add_day(date)
         app.add_products_to_meal(
             index=0, products=[FastProduct(name="ser", protein=160.0, carbs=372.5, fats=99.33, kcal=2980.0)]
