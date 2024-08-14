@@ -14,6 +14,7 @@ class NutritionAppGUI:
         self.root.title("Nutrition App")
         self.app = App()
         self.main_frame = tk.Frame(root)
+        self.meal_frame = tk.Frame(root)
         self.user_settings_frame = tk.Frame(root)
         self.target_settings_frame = tk.Frame(root)
         self.progress_frame = tk.Frame(root)
@@ -104,7 +105,7 @@ class NutritionAppGUI:
         self.users_gender_switch = tk.OptionMenu(self.user_frame, self.users_gender, "male", "female")
         self.users_gender_switch.grid(row=5, column=1, padx=5, pady=5)
 
-        tk.Button(self.user_frame, text="Create user", command=self.create_user).grid(row=6, column=1, columnspan=2, pady=10)
+        tk.Button(self.user_frame, text="Create user", command=self.create_user).grid(row=6, column=0, columnspan=2, pady=10)
 
 
         #target
@@ -163,13 +164,15 @@ class NutritionAppGUI:
         self.user_frame.pack(pady=20)
 
     def show_target_frame(self):
-        self.user_settings_frame.pack_forget()
+        self.target_settings_frame.pack_forget()
         self.main_frame.pack_forget()
         self.login_frame.pack_forget()
         self.user_frame.pack_forget()
         self.target_frame.pack(pady=20)
 
     def show_main_frame(self):
+        self.meal_frame.pack_forget()
+        self.progress_frame.pack_forget()
         self.login_frame.pack_forget()
         self.target_frame.pack_forget()
         self.user_settings_frame.pack_forget()
@@ -180,17 +183,50 @@ class NutritionAppGUI:
         self.app.add_day(date=Day.set_date())
         tk.Label(self.main_frame, text=f"Date: {self.app.days_manager.days[-1].get_pretty_date()}").grid(row=0, column=3, pady=10)
 
-        n = 1
-        for meal in self.app._user.meal_order:
-            tk.Label(self.main_frame, text=f"meal {n}:").grid(row=n, column=1, pady=10, padx=10)
-            tk.Button(self.main_frame, text=meal, command=self.get_meal(meal)).grid(row=n, column=2, pady=10, padx=10)
-            n += 1
+
+
+        tk.Label(self.main_frame, text="meal 1:").grid(row=1, column=1, pady=10, padx=10)
+        tk.Button(self.main_frame, text=f"{self.app.user.meal_order[0]}", command=self.get_meal1).grid(row=1, column=2, pady=10, padx=10)
+
+
+        tk.Label(self.main_frame, text="meal 2:").grid(row=2, column=1, pady=10, padx=10)
+        tk.Button(self.main_frame, text=f"{self.app.user.meal_order[1]}", command=self.get_meal2).grid(row=2, column=2, pady=10, padx=10)
+
+        tk.Label(self.main_frame, text="meal 3:").grid(row=3, column=1, pady=10, padx=10)
+        tk.Button(self.main_frame, text=f"{self.app.user.meal_order[2]}", command=self.get_meal3).grid(
+            row=3, column=2, pady=10, padx=10
+        )
+
+        tk.Label(self.main_frame, text="meal 4:").grid(row=4, column=1, pady=10, padx=10)
+        tk.Button(self.main_frame, text=f"{self.app.user.meal_order[3]}", command=self.get_meal4).grid(
+            row=4, column=2, pady=10, padx=10
+        )
+
+        tk.Button(self.user_frame, text="Go back", command=self.show_user_settings_frame).grid(
+            row=7, column=0, columnspan=2, pady=10
+        )
+
+        tk.Button(self.target_frame, text="Go back", command=self.show_target_settings_frame).grid(row=8, column=2, pady=10)
+
+    def get_meal1(self):
+        self.get_meal(self.app.user.meal_order[0])
+
+    def get_meal2(self):
+        self.get_meal(self.app.user.meal_order[1])
+
+    def get_meal3(self):
+        self.get_meal(self.app.user.meal_order[2])
+
+    def get_meal4(self):
+        self.get_meal(self.app.user.meal_order[3])
 
     def show_user_settings_frame(self):
+        self.user_frame.pack_forget()
         self.main_frame.pack_forget()
         self.user_settings_frame.pack(pady=20)
 
     def show_target_settings_frame(self):
+        self.target_frame.pack_forget()
         self.main_frame.pack_forget()
         self.target_settings_frame.pack(pady=20)
 
@@ -235,11 +271,11 @@ class NutritionAppGUI:
         try:
             self.app.login(username, password)
 
-            if self.app._user is None:
+            if self.app.user is None:
                 messagebox.showinfo(message="Please create a new user")
                 self.show_user_frame()
 
-            elif self.app._user.daily_target == DailyTarget():
+            elif self.app.user.daily_target == DailyTarget():
                 messagebox.showinfo(message="Please create a daily target")
                 self.show_target_frame()
 
@@ -292,7 +328,7 @@ class NutritionAppGUI:
 
     def user_settings(self):
         self.show_user_settings_frame()
-        user = self.app._user
+        user = self.app.user
         user_settings_dict = {"name": user.name, "surname": user.surname, "age": user.age, "height": user.height, "weight": user.weight, "gender": user.gender}
 
         n = 0
@@ -305,7 +341,7 @@ class NutritionAppGUI:
 
     def target_settings(self):
         self.show_target_settings_frame()
-        target = self.app._user.daily_target
+        target = self.app.user.daily_target
         target_settings_dict = {"kcal": target.kcal, "protein": target.protein, "carbs": target.carbs, "fats": target.fats}
 
         n = 0
@@ -330,13 +366,15 @@ class NutritionAppGUI:
         tk.Button(self.progress_frame, text=fats[0], command= self.show_fats_frame).grid(row=2, column=0, pady=10, padx=10)
         tk.Button(self.progress_frame, text=kcal[0], command= self.show_kcal_frame).grid(row=3, column=0, pady=10, padx=10)
 
+        tk.Button(self.progress_frame, text="Go back", command=self.show_main_frame).grid(row=4, column=0, pady=10, padx=10)
+
     def show_protein_frame(self):
         var_frame = tk.Frame(root)
         var_frame.pack(pady=20)
 
         protein = self.app.days_manager.get_progress("protein")
 
-        tk.Label(var_frame, text=protein[1]).grid(row=0, column=0, pady=10, padx=10)
+        tk.Label(var_frame, text=f"protein: {protein[1]}").grid(row=0, column=0, pady=10, padx=10)
 
         tk.Button(var_frame, text="Go back", command=var_frame.pack_forget).grid(row=1, column=0, pady=10, padx=10)
 
@@ -346,7 +384,7 @@ class NutritionAppGUI:
 
         carbs = self.app.days_manager.get_progress("carbs")
 
-        tk.Label(var_frame, text=carbs[1]).grid(row=0, column=0, pady=10, padx=10)
+        tk.Label(var_frame, text=f"carbs: {carbs[1]}").grid(row=0, column=0, pady=10, padx=10)
 
         tk.Button(var_frame, text="Go back", command=var_frame.pack_forget).grid(row=1, column=0, pady=10, padx=10)
 
@@ -356,7 +394,7 @@ class NutritionAppGUI:
 
         fats = self.app.days_manager.get_progress("fats")
 
-        tk.Label(var_frame, text=fats[1]).grid(row=0, column=0, pady=10, padx=10)
+        tk.Label(var_frame, text=f"fats: {fats[1]}").grid(row=0, column=0, pady=10, padx=10)
 
         tk.Button(var_frame, text="Go back", command=var_frame.pack_forget).grid(row=1, column=0, pady=10, padx=10)
 
@@ -366,13 +404,45 @@ class NutritionAppGUI:
 
         kcal = self.app.days_manager.get_progress("kcal")
 
-        tk.Label(var_frame, text=kcal[1]).grid(row=0, column=0, pady=10, padx=10)
+        tk.Label(var_frame, text=f"kcal: {kcal[1]}").grid(row=0, column=0, pady=10, padx=10)
 
         tk.Button(var_frame, text="Go back", command=var_frame.pack_forget).grid(row=1, column=0, pady=10, padx=10)
 
 
+    def show_meal_frame(self):
+        self.main_frame.pack_forget()
+        self.meal_frame.pack(pady=20)
+
     def get_meal(self, meal_name):
-        pass
+        self.show_meal_frame()
+
+        ov_dict = self.app.days_manager.get_meal_progress(meal_name)
+
+        all_products = ""
+        for name in ov_dict["names"]:
+            all_products += f"{name}, "
+
+        tk.Label(self.meal_frame, text="Consumed:").grid(row=0, column=1, columnspan=2, pady=10, padx=10)
+
+        tk.Label(self.meal_frame, text=f"protein: {ov_dict['protein']}").grid(row=1, column=0, pady=10, padx=10)
+        tk.Label(self.meal_frame, text=f"carbs: {ov_dict['carbs']}").grid(row=1, column=1, pady=10, padx=10)
+        tk.Label(self.meal_frame, text=f"fats: {ov_dict['fats']}").grid(row=1, column=2, pady=10, padx=10)
+        tk.Label(self.meal_frame, text=f"kcal: {ov_dict['kcal']}").grid(row=1, column=3, pady=10, padx=10)
+
+        tk.Label(self.meal_frame, text="Products names:").grid(row=2, column=1, columnspan=2, pady=10, padx=10)
+        tk.Label(self.meal_frame, text=f"{all_products}").grid(row=3, column=0, columnspan=4, pady=10, padx=10)
+
+        tk.Button(self.meal_frame, text="Get Product by id").grid(row=4, column=0, columnspan=2, pady=10, padx=10)
+        self.id_entry = tk.Entry(self.meal_frame)
+        self.id_entry.insert(0, "Products id")
+        self.id_entry.grid(row=5, column=0, columnspan=2, pady=10, padx=10)
+
+        tk.Button(self.meal_frame, text="Get Product by name").grid(row=4, column=2, columnspan=2, pady=10, padx=10)
+        self.name_entry = tk.Entry(self.meal_frame)
+        self.name_entry.insert(0, "Products name")
+        self.name_entry.grid(row=5, column=2, columnspan=2, pady=10, padx=10)
+
+        tk.Button(self.meal_frame, text="Go back", command=self.show_main_frame).grid(row=6, column=1, columnspan=2, pady=10, padx=10)
 
 if __name__ == "__main__":
     root = tk.Tk()

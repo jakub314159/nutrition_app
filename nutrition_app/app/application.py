@@ -103,7 +103,7 @@ class App:
         self._verification_name = "verification"
         self._daily_target_name = "target"
         self._username: str | None = None
-        self._user: User | None = None
+        self.user: User | None = None
         self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
         logger.info(f"creating database {self.DATABASE_DIR}")
         self.days_manager: DaysManager | None = None
@@ -350,8 +350,8 @@ class App:
 
             logger.info("User is loaded.")
             user = User.from_dict(user_info)
-            self._user = user
-            self.days_manager = DaysManager(username=username, user=self._user)
+            self.user = user
+            self.days_manager = DaysManager(username=username, user=self.user)
 
         else:
             logger.info("Please create a new user with create_user method.")
@@ -401,8 +401,8 @@ class App:
         )
 
         logger.info(msg="User created successfully.")
-        self._user = user
-        self.days_manager = DaysManager(username=self._username, user=self._user)
+        self.user = user
+        self.days_manager = DaysManager(username=self._username, user=self.user)
 
     def create_daily_target(
         self,
@@ -430,19 +430,19 @@ class App:
         """
         try:
             if kcal and protein and carbs and fats:
-                self._user.create_daily_target(kcal, protein, carbs, fats)
+                self.user.create_daily_target(kcal, protein, carbs, fats)
             else:
-                self._user.set_daily_target(activity)
+                self.user.set_daily_target(activity)
             logger.info(msg="Daily target created successfully.")
             self.database_connector.add_to_table(
                 self._daily_target_name,
                 [
                     (
                         self._username,
-                        self._user.daily_target.protein,
-                        self._user.daily_target.carbs,
-                        self._user.daily_target.fats,
-                        self._user.daily_target.kcal,
+                        self.user.daily_target.protein,
+                        self.user.daily_target.carbs,
+                        self.user.daily_target.fats,
+                        self.user.daily_target.kcal,
                     )
                 ],
             )

@@ -133,6 +133,9 @@ class DaysManager:
         """
         return self.days[-1].get_progress_bar(variable)
 
+    def get_meal_progress(self, meal_name):
+        return self.days[-1].get_meal_progress(meal_name)
+
     def save_to_database(self, date: int | None = None) -> None:
         """
         Save a Day to database.

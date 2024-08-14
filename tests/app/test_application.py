@@ -164,7 +164,7 @@ class TestApp:
         app.database_connector.add_to_table(app._users_name, [("test1", "name", "surname", 18, 180, 70, "male")])
         app.database_connector.add_to_table(app._daily_target_name, [("test1", 149.0, 372.5, 99.33, 2980.0)])
         app.load_user("test1")
-        assert app._user.name == "name"
+        assert app.user.name == "name"
 
     def test_create_user_without_daily_target(self, app):
         app.register("test", "Ab1@cdefgh", "gmail.com")
@@ -183,19 +183,19 @@ class TestApp:
         app.create_user("test", "test", 16, 2, 3, "male", daily_target)
 
         record = app.database_connector.get_record_from_table(app._daily_target_name, "username", app._username)
-        assert record["kcal"] == app._user.daily_target.kcal
+        assert record["kcal"] == app.user.daily_target.kcal
 
     def test_create_new_daily_target(self, app):
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(kcal=340, protein=20, fats=20, carbs=20)
 
-        assert app._user.daily_target.kcal == 340
+        assert app.user.daily_target.kcal == 340
 
     def test_set_new_daily_target(self, app):
         app.create_user("test", "test", 16, 2, 3, "male")
         app.create_daily_target(activity=3)
 
-        assert app._user.daily_target.kcal == 1550
+        assert app.user.daily_target.kcal == 1550
 
     def test_adding_to_meals_functionality(self, app):
         app.days_manager = DaysManager("test", User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)), MockedConnector())

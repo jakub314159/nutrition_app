@@ -203,6 +203,22 @@ class Day:
                 local_progress["actual"],
             ]
 
+    def get_meal_progress(self, meal_name: str):
+        ov_kcal = 0
+        ov_protein = 0
+        ov_carbs = 0
+        ov_fats = 0
+        name_list = []
+
+        for product in self.meals[meal_name].products:
+            name_list.append(product.name)
+            ov_kcal += product.kcal
+            ov_protein += product.protein
+            ov_carbs += product.carbs
+            ov_fats += product.fats
+
+        return {"names": name_list, "kcal": ov_kcal, "protein": ov_protein, "carbs": ov_carbs, "fats": ov_fats}
+
     def to_tuple(self) -> tuple[float]:
         """
         Get a tuple containing consumed micronutrients and the days target.
