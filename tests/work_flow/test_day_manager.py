@@ -55,7 +55,7 @@ class TestDayManager:
         manager.add_to_meal(0, [EatableProduct(product=Product("ser", 0, 10, 10, 10, 120), mass=100)])
         eaten = manager.get_progress("kcal")
 
-        assert eaten[1] == 120
+        assert eaten[2] == 120
 
     def test_save_to_database(self, manager):
         manager.add_day(240101)

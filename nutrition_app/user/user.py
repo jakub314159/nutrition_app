@@ -64,11 +64,7 @@ class User:
         return round(self.weight / height**2, 2)
 
     def create_daily_target(
-        self,
-        kcal: float,
-        protein: float,
-        carbs: float,
-        fats: float,
+        self, kcal: float, protein: float, carbs: float, fats: float, goal: bool | None = None
     ) -> None:
         """
         Create a daily target for the user.

@@ -56,10 +56,20 @@ class Day:
         Get date of the Day.
 
         Returns:
-            int: the yy:mm:dd representation of the date.
+            int: the yymmdd representation of the date.
         """
         now = datetime.now()
         return now.strftime("%y%m%d")
+
+    @staticmethod
+    def get_pretty_date() -> str:
+        """
+        Get date in format 'dd.mm.yy'
+        Returns:
+            str: the 'dd.mm.yy' representation of the date.
+        """
+        now = datetime.now()
+        return str(now.strftime("%d.%m.%y"))
 
     def _validate(self, meal_index: int) -> None:
         """
@@ -183,15 +193,33 @@ class Day:
             if full == 20:
                 intake_info = "progress: 100%"
             return [
-                f"{variable}\t{20 * '▰'} {local_progress['actual']} / {local_progress['target']}, {intake_info}",
+                f"{variable}\t{20 * '▰'}",
+                f"{local_progress['actual']} / {local_progress['target']}, {intake_info}",
                 local_progress["actual"],
             ]
         else:
             less = 20 - full
             return [
-                f"{variable}\t{int(full) * '▰' + int(less) * '▱'} {local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
+                f"{variable}\t{int(full) * '▰' + int(less) * '▱'}",
+                f"{local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
                 local_progress["actual"],
             ]
+
+    def get_meal_progress(self, meal_name: str):
+        ov_kcal = 0
+        ov_protein = 0
+        ov_carbs = 0
+        ov_fats = 0
+        name_list = []
+
+        for product in self.meals[meal_name].products:
+            name_list.append(product.product.name)
+            ov_kcal += product.product.kcal
+            ov_protein += product.product.protein
+            ov_carbs += product.product.carbs
+            ov_fats += product.product.fats
+
+        return {"names": name_list, "kcal": ov_kcal, "protein": ov_protein, "carbs": ov_carbs, "fats": ov_fats}
 
     def to_tuple(self) -> tuple[float]:
         """

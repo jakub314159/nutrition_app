@@ -14,7 +14,7 @@ from nutrition_app.user.user import User
 from nutrition_app.email_sender.email_sender import Sender
 from nutrition_app.work_flow.days_manager import DaysManager
 from nutrition_app.products_base.products_base_manager import ProductsManager
-from tests.mocked_connector import MockedConnector
+
 
 LOGIN_DIRPATH = Path(__file__).parent.parent / "user_base" / "login_base.json"
 USER_DIRPATH = Path(__file__).parent.parent / "user_base" / "user_base.json"
@@ -72,6 +72,14 @@ class IncorrectLoginInformation(ValueError):
     pass
 
 
+class IncorrectUsername(ValueError):
+    """
+    Super class of "ValueError", that pops up when username is incorrect while login in.
+    """
+
+    pass
+
+
 class WrongMadePasswordError(ValueError):
     """
     Super class of "ValueError", that pops up when the password is incorrectly made.
@@ -96,10 +104,10 @@ class App:
         self._verification_name = "verification"
         self._daily_target_name = "target"
         self._username: str | None = None
-        self._user: User | None = None
+        self.user: User | None = None
         self.database_connector = kwargs.get("database_connector") or SQLConnector(self.DATABASE_DIR)
         logger.info(f"creating database {self.DATABASE_DIR}")
-        self.days_manager: DaysManager | MockedConnector | None = None
+        self.days_manager: DaysManager | None = None
         self.id_base_manager = ProductsManager()
 
         self._create_table(self._logins_name, ("username", "password", "email", "verified"))
@@ -161,8 +169,8 @@ class App:
 
         upp = [x.title() for x in choices(LETTERS, k=random.randint(2, 5))]
         low = choices(LETTERS, k=random.randint(2, 5))
-        num = choices(CIFERS, k=random.randint(2, 5))
-        char = choices(SPECIAL_CHARS, k=random.randint(2, 5))
+        num = choices(CIFERS, k=random.randint(2, 4))
+        char = choices(SPECIAL_CHARS, k=random.randint(2, 3))
 
         sum_list = upp + low + num + char
         shuffle(x=sum_list)
@@ -295,14 +303,17 @@ class App:
         Returns:
             None
         """
-        tables = self.database_connector.get_table(self._logins_name)
+        password = b64encode(password.encode("utf-8")).decode("utf-8")
 
-        if (
-            username not in tables["username"]
-            or b64encode(password.encode("utf-8")).decode("utf-8") not in tables["password"]
-            or tables["username"].index(username)
-            != tables["password"].index(b64encode(password.encode("utf-8")).decode("utf-8"))
-        ):
+        table = self.database_connector.get_table(table_name=self._logins_name)
+        record = self.database_connector.get_record_from_table(
+            table_name=self._logins_name, key_name="username", key_val=username
+        )
+
+        if username not in table["username"]:
+            raise IncorrectUsername(error_base.get("E13"))
+
+        if username != record["username"] or password != record["password"]:
             raise IncorrectLoginInformation(error_base.get("E13"))
 
         if not self.database_connector.get_record_from_table(self._logins_name, "username", username)["verified"]:
@@ -341,10 +352,8 @@ class App:
 
             logger.info("User is loaded.")
             user = User.from_dict(user_info)
-            self._user = user
-            if self.database_connector == MockedConnector():
-                self.days_manager = DaysManager(username=username, user=self._user, connector=MockedConnector())
-            self.days_manager = DaysManager(username=username, user=self._user)
+            self.user = user
+            self.days_manager = DaysManager(username=username, user=self.user)
 
         else:
             logger.info("Please create a new user with create_user method.")
@@ -375,7 +384,13 @@ class App:
             None
         """
         user = User(
-            name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target
+            name=name,
+            surname=surname,
+            age=age,
+            height=height,
+            weight=weight,
+            gender=gender,
+            daily_target=daily_target or DailyTarget(),
         )
 
         if not daily_target:
@@ -394,10 +409,8 @@ class App:
         )
 
         logger.info(msg="User created successfully.")
-        self._user = user
-        if self.database_connector == MockedConnector():
-            self.days_manager = DaysManager(username=self._username, user=self._user, connector=MockedConnector())
-        self.days_manager = DaysManager(username=self._username, user=self._user)
+        self.user = user
+        self.days_manager = DaysManager(username=self._username, user=self.user)
 
     def create_daily_target(
         self,
@@ -425,19 +438,19 @@ class App:
         """
         try:
             if kcal and protein and carbs and fats:
-                self._user.create_daily_target(kcal, protein, carbs, fats)
+                self.user.create_daily_target(kcal, protein, carbs, fats)
             else:
-                self._user.set_daily_target(activity)
+                self.user.set_daily_target(activity)
             logger.info(msg="Daily target created successfully.")
             self.database_connector.add_to_table(
                 self._daily_target_name,
                 [
                     (
                         self._username,
-                        self._user.daily_target.protein,
-                        self._user.daily_target.carbs,
-                        self._user.daily_target.fats,
-                        self._user.daily_target.kcal,
+                        self.user.daily_target.protein,
+                        self.user.daily_target.carbs,
+                        self.user.daily_target.fats,
+                        self.user.daily_target.kcal,
                     )
                 ],
             )
@@ -517,10 +530,13 @@ class App:
 
         else:
             if variable:
-                print(self.days_manager.get_progress(variable)[0])
-                return self.days_manager.get_progress(variable)[1]
+                print(self.days_manager.get_progress(variable)[0], self.days_manager.get_progress(variable)[1])
+                return self.days_manager.get_progress(variable)[2]
             else:
-                [print(self.days_manager.get_progress(x)[0]) for x in ["kcal", "protein", "carbs", "fats"]]
+                [
+                    print(self.days_manager.get_progress(x)[0], self.days_manager.get_progress(x)[1])
+                    for x in ["kcal", "protein", "carbs", "fats"]
+                ]
 
     def save_day(self, date: int) -> None:
         """
