@@ -11,7 +11,7 @@ from nutrition_app.app.application import (
     EmailTakenError,
     WrongMadePasswordError,
     IncorrectLoginInformation,
-    IncorrectUsername
+    IncorrectUsername,
 )
 from nutrition_app.models.fast_product import FastProduct
 from nutrition_app.user.daily_target import DailyTarget
@@ -198,7 +198,11 @@ class TestApp:
         assert app.user.daily_target.kcal == 1550
 
     def test_adding_to_meals_functionality(self, app):
-        app.days_manager = DaysManager("test", User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)), MockedConnector())
+        app.days_manager = DaysManager(
+            "test",
+            User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)),
+            MockedConnector(),
+        )
         app.add_day(240101)
         app.add_products_to_meal(
             index=0, products=[FastProduct(name="ser", protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)]
@@ -227,7 +231,11 @@ class TestApp:
         app.get_progress()
 
     def test_save_day(self, app):
-        app.days_manager = DaysManager("test", User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)), MockedConnector())
+        app.days_manager = DaysManager(
+            "test",
+            User("test", "test", 16, 2, 3, "male", DailyTarget(protein=149.0, carbs=372.5, fats=99.33, kcal=2980.0)),
+            MockedConnector(),
+        )
         date = 240101
         app.add_day(date)
         app.add_products_to_meal(

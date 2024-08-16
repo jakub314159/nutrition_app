@@ -32,3 +32,6 @@ namespaces = false
 
 [tool.black]
 line-length = 120
+
+[tool.coverage.run]
+omit = ["nutrition_app/app_in_tkinter/*.py"]

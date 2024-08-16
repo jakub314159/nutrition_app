@@ -193,13 +193,15 @@ class Day:
             if full == 20:
                 intake_info = "progress: 100%"
             return [
-                f"{variable}\t{20 * '▰'}", f"{local_progress['actual']} / {local_progress['target']}, {intake_info}",
+                f"{variable}\t{20 * '▰'}",
+                f"{local_progress['actual']} / {local_progress['target']}, {intake_info}",
                 local_progress["actual"],
             ]
         else:
             less = 20 - full
             return [
-                f"{variable}\t{int(full) * '▰' + int(less) * '▱'}", f"{local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
+                f"{variable}\t{int(full) * '▰' + int(less) * '▱'}",
+                f"{local_progress['actual']} / {local_progress['target']}, progress: {local_progress['percentage']}%",
                 local_progress["actual"],
             ]
 
@@ -211,11 +213,11 @@ class Day:
         name_list = []
 
         for product in self.meals[meal_name].products:
-            name_list.append(product.name)
-            ov_kcal += product.kcal
-            ov_protein += product.protein
-            ov_carbs += product.carbs
-            ov_fats += product.fats
+            name_list.append(product.product.name)
+            ov_kcal += product.product.kcal
+            ov_protein += product.product.protein
+            ov_carbs += product.product.carbs
+            ov_fats += product.product.fats
 
         return {"names": name_list, "kcal": ov_kcal, "protein": ov_protein, "carbs": ov_carbs, "fats": ov_fats}
 

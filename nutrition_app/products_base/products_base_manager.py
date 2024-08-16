@@ -90,3 +90,7 @@ class ProductsManager:
         return Product(
             name.title(), product["id"], product["protein"], product["carbs"], product["fats"], product["kcal"]
         )
+
+
+b = ProductsManager()
+print(b.get_product_by_id(2))

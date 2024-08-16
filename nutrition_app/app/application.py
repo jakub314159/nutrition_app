@@ -71,6 +71,7 @@ class IncorrectLoginInformation(ValueError):
 
     pass
 
+
 class IncorrectUsername(ValueError):
     """
     Super class of "ValueError", that pops up when username is incorrect while login in.
@@ -305,8 +306,9 @@ class App:
         password = b64encode(password.encode("utf-8")).decode("utf-8")
 
         table = self.database_connector.get_table(table_name=self._logins_name)
-        record = self.database_connector.get_record_from_table(table_name=self._logins_name, key_name="username", key_val=username)
-
+        record = self.database_connector.get_record_from_table(
+            table_name=self._logins_name, key_name="username", key_val=username
+        )
 
         if username not in table["username"]:
             raise IncorrectUsername(error_base.get("E13"))
@@ -382,7 +384,13 @@ class App:
             None
         """
         user = User(
-            name=name, surname=surname, age=age, height=height, weight=weight, gender=gender, daily_target=daily_target or DailyTarget()
+            name=name,
+            surname=surname,
+            age=age,
+            height=height,
+            weight=weight,
+            gender=gender,
+            daily_target=daily_target or DailyTarget(),
         )
 
         if not daily_target:
@@ -525,7 +533,10 @@ class App:
                 print(self.days_manager.get_progress(variable)[0], self.days_manager.get_progress(variable)[1])
                 return self.days_manager.get_progress(variable)[2]
             else:
-                [print(self.days_manager.get_progress(x)[0], self.days_manager.get_progress(x)[1]) for x in ["kcal", "protein", "carbs", "fats"]]
+                [
+                    print(self.days_manager.get_progress(x)[0], self.days_manager.get_progress(x)[1])
+                    for x in ["kcal", "protein", "carbs", "fats"]
+                ]
 
     def save_day(self, date: int) -> None:
         """
